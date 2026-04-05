@@ -20,7 +20,7 @@ export default async function ProjectSettingsPage({ params }: { params: Promise<
   // Deduplicate by profile id
   const seen = new Set<string>()
   const members = (taskAssignees ?? []).reduce<{ id: string; name: string | null; email: string | null }[]>((acc, t) => {
-    const p = t.profiles as { id: string; name: string | null; email: string | null } | null
+    const p = t.profiles as unknown as { id: string; name: string | null; email: string | null } | null
     if (p && !seen.has(p.id)) { seen.add(p.id); acc.push(p) }
     return acc
   }, [])
