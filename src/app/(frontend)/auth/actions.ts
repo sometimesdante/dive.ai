@@ -25,7 +25,7 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-  const supabase = createClient(await cookies());
+const supabase = createClient(await cookies());
 
   const data = {
     email: formData.get("email") as string,
