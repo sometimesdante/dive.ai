@@ -5,6 +5,10 @@ import { Plus, Search, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
 import CreateProjectPanel from '@/ui/dive/CreateProjectPanel'
+import Topbar from '@/ui/dive/Topbar'
+import Dropdown from '@/ui/base/Dropdown'
+import Field from '@/ui/base/Field'
+import SlidePanel from '@/ui/base/SlidePanel'
 import { createTask, updateTaskStage } from '@/app/(dive)/projects/actions'
 import { createClient } from '@/utils/supabase/client'
 
@@ -206,8 +210,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
 
   return (
     <div className="flex flex-col h-full">
-      {/* Topbar */}
-      <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#c7c7c7] bg-white shrink-0">
+      <Topbar>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 bg-white border border-[#e8e8e8] h-8 px-3 rounded w-60">
             <Search size={12} className="text-[#838383] shrink-0" />
@@ -216,52 +219,43 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
               placeholder="Search tasks"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-base text-black w-full outline-none bg-transparent"
+              className="text-black w-full outline-none bg-transparent"
             />
           </div>
 
           <button
             onClick={() => setPanelOpen(true)}
-            className="flex items-center gap-2 bg-[#242424] h-8 px-3 rounded cursor-pointer"
+            className="flex items-center gap-2 bg-[#242424] h-8 px-3 rounded cursor-pointer shrink-0 whitespace-nowrap"
           >
-            <span className="text-[#d3d3d3] text-base">Create project</span>
+            <span className="text-[#d3d3d3]">Create project</span>
             <Plus size={12} className="text-[#d3d3d3]" />
           </button>
 
           {selectedProject && (
-            <>
-<button
-                onClick={() => router.push(`/projects/${selectedProject.id}/settings`)}
-                className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
-              >
-                <span className="text-[#242424] text-base">Project settings</span>
-                <Settings size={12} className="text-[#242424]" />
-              </button>
-            </>
+            <button
+              onClick={() => router.push(`/projects/${selectedProject.id}/settings`)}
+              className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
+            >
+              <span className="text-[#242424]">Project settings</span>
+              <Settings size={12} className="text-[#242424]" />
+            </button>
           )}
         </div>
 
-        {/* Project selector */}
-        <div className="relative flex items-center bg-white border border-[#c7c7c7] h-8 px-3 rounded w-60">
-          <select
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="text-base text-black w-full outline-none bg-transparent appearance-none cursor-pointer"
-          >
-            <option value="">All projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          <svg className="absolute right-3 pointer-events-none" width="10" height="5" viewBox="0 0 10 5" fill="none">
-            <path d="M0 0L5 5L10 0H0Z" fill="#242424" />
-          </svg>
-        </div>
-      </div>
+        <Dropdown
+          value={selectedProjectId}
+          onChange={e => setSelectedProjectId(e.target.value)}
+          options={[
+            { label: 'All projects', value: '' },
+            ...projects.map(p => ({ label: p.name, value: p.id })),
+          ]}
+          className="w-60"
+        />
+      </Topbar>
 
       {/* Body */}
       {loadingTasks ? (
-        <div className="flex-1 flex items-center justify-center text-[#838383] text-base">Loading…</div>
+        <div className="flex-1 flex items-center justify-center text-[#838383]">Loading…</div>
       ) : (
         // Kanban board
         <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
@@ -278,7 +272,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
                   className={`flex-1 min-w-[200px] flex flex-col overflow-y-auto px-3 py-2 -mx-3 rounded-lg transition-colors ${isOver ? 'bg-black/5' : ''}`}
                 >
                   <div className="flex items-center justify-between mb-4 shrink-0">
-                    <h2 className="text-[#063530] text-2xl font-semibold tracking-wide">{col.label}</h2>
+                    <h3 className="text-[#063530] font-semibold tracking-wide">{col.label}</h3>
                     <ColumnIndicator color={col.indicator} />
                   </div>
 
@@ -307,7 +301,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
                     )}
 
                     {cards.length === 0 && !isOver && (
-                      <p className="text-[#838383] text-sm px-3">No tasks</p>
+                      <p className="text-[#838383] px-3">No tasks</p>
                     )}
                   </div>
 
@@ -336,69 +330,55 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
       />
 
       {/* Create task panel */}
-      {createTaskOpen && (
-        <>
-          <div className="fixed inset-0 backdrop-blur-[2px] bg-white/20 z-30" onClick={() => setCreateTaskOpen(false)} />
-          <div className="fixed top-0 right-0 h-full w-[300px] bg-[#f2f2f2] border-l border-[#e8e8e8] shadow-xl flex flex-col gap-4 p-6 z-40">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-wide">New task</h2>
-              <p className="text-[13px] text-[#838383] mt-1">
-                {selectedProject?.name} · {columns.find(c => c.stage === taskStage)?.label}
-              </p>
+      <SlidePanel open={createTaskOpen} onClose={() => setCreateTaskOpen(false)} width={360}>
+        <div>
+          <h3 className="font-semibold tracking-wide">New task</h3>
+          <p className="text-[#838383] mt-1">
+            {selectedProject?.name} · {columns.find(c => c.stage === taskStage)?.label}
+          </p>
+        </div>
+
+        <form onSubmit={handleCreateTask} className="flex flex-col gap-3 flex-1">
+          <input type="hidden" name="stage" value={taskStage} />
+
+          <Field label="Task name">
+            <input
+              required
+              value={taskName}
+              onChange={e => setTaskName(e.target.value)}
+              placeholder="e.g. Refactor data fetching"
+              className="bg-white border border-black h-8 px-3 rounded text-black outline-none w-full"
+            />
+          </Field>
+
+          <Field label="Code">
+            <div className="bg-[#e8e8e8] border border-[#c7c7c7] h-8 px-3 rounded text-[#838383] flex items-center w-full select-none">
+              {taskCode}
             </div>
+          </Field>
 
-            <form onSubmit={handleCreateTask} className="flex flex-col gap-3 flex-1">
-              <input type="hidden" name="stage" value={taskStage} />
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[13px] text-[#838383] px-3">Task name</span>
-                <input
-                  required
-                  value={taskName}
-                  onChange={e => setTaskName(e.target.value)}
-                  placeholder="e.g. Refactor data fetching"
-                  className="bg-white border border-black h-8 px-3 rounded text-base text-black outline-none w-full"
-                />
-              </div>
+          <Field label="Assignee">
+            <Dropdown
+              value={taskOwner}
+              onChange={e => setTaskOwner(e.target.value)}
+              options={[
+                { label: '— none —', value: '' },
+                ...members.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
+              ]}
+            />
+          </Field>
 
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[13px] text-[#838383] px-3">Code</span>
-                <div className="bg-[#e8e8e8] border border-[#c7c7c7] h-8 px-3 rounded text-base text-[#838383] flex items-center w-full select-none">
-                  {taskCode}
-                </div>
-              </div>
+          {taskError && <p className="text-red-600">{taskError}</p>}
 
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[13px] text-[#838383] px-3">Assignee</span>
-                <div className="relative">
-                  <select
-                    value={taskOwner}
-                    onChange={e => setTaskOwner(e.target.value)}
-                    className="bg-white border border-[#c7c7c7] h-8 px-3 rounded text-base text-black outline-none appearance-none cursor-pointer w-full"
-                  >
-                    <option value="">— none —</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>{m.name ?? m.email}</option>
-                    ))}
-                  </select>
-                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="5" viewBox="0 0 10 5" fill="none">
-                    <path d="M0 0L5 5L10 0H0Z" fill="#242424" />
-                  </svg>
-                </div>
-              </div>
-
-              {taskError && <p className="text-red-600 text-[13px]">{taskError}</p>}
-
-              <button
-                type="submit"
-                disabled={taskSaving}
-                className="mt-auto bg-[#242424] h-8 px-3 rounded text-[#d3d3d3] text-base cursor-pointer disabled:opacity-50 w-full"
-              >
-                {taskSaving ? 'Creating…' : 'Create task'}
-              </button>
-            </form>
-          </div>
-        </>
-      )}
+          <button
+            type="submit"
+            disabled={taskSaving}
+            className="mt-auto bg-[#242424] h-8 px-3 rounded text-[#d3d3d3] cursor-pointer disabled:opacity-50 w-full"
+          >
+            {taskSaving ? 'Creating…' : 'Create task'}
+          </button>
+        </form>
+      </SlidePanel>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 
 type DropdownProps = {
   value?: string
+  defaultValue?: string
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
   options: { label: string; value: string }[]
   name?: string
@@ -9,15 +10,16 @@ type DropdownProps = {
   className?: string
 }
 
-export default function Dropdown({ value, onChange, options, name, id, className }: DropdownProps) {
+export default function Dropdown({ value, defaultValue, onChange, options, name, id, className }: DropdownProps) {
   return (
-    <div className={`bg-white border border-[#c7c7c7] flex h-8 items-center justify-between px-3 rounded w-full relative ${className ?? ''}`}>
+    <div className={`bg-white border border-[#c7c7c7] flex h-8 items-center justify-between px-3 rounded relative ${className ?? ''}`}>
       <select
         name={name}
         id={id}
         value={value}
+        defaultValue={defaultValue}
         onChange={onChange}
-        className="text-base text-black w-full outline-none bg-transparent appearance-none cursor-pointer"
+        className="text-black w-full outline-none bg-transparent appearance-none cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

@@ -11,6 +11,7 @@ import {
   Ticket,
   Clock,
   MessageSquare,
+  Settings,
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -21,6 +22,7 @@ const links = [
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/timesheet', label: 'Timesheet', icon: Clock },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 type Props = {
@@ -46,14 +48,14 @@ export default function Sidebar({ userName, userEmail }: Props) {
       <div className="flex items-center justify-center px-3 py-4">
         {open ? (
           <div className="flex items-center justify-between w-full">
-            <span className="text-[#00C49A] font-bold text-lg">Dive!</span>
+            <h4 className="ml-8 text-[#00C49A] font-bold">Dive!</h4>
             <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-gray-100">
               <Menu size={20} />
             </button>
           </div>
         ) : (
-          <button onClick={() => setOpen(true)} className="text-[#00C49A] font-bold text-lg">
-            D!
+          <button onClick={() => setOpen(true)} className="text-[#00C49A] font-bold">
+            <h5 className='text-[#00C49A] font-bold'>D!</h5>
           </button>
         )}
       </div>
@@ -66,7 +68,7 @@ export default function Sidebar({ userName, userEmail }: Props) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-2 py-2 rounded-md transition-colors ${active ? 'font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
+              className={`flex items-center gap-3 px-2 py-2 transition-colors ${active ? 'font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               <Icon size={18} className="shrink-0" />
               {open && (
@@ -85,10 +87,10 @@ export default function Sidebar({ userName, userEmail }: Props) {
           onClick={handleLogout}
           className="flex items-center gap-2 px-3 py-4 border-t border-gray-100 hover:bg-gray-100 transition-colors w-full text-left"
         >
-          <div className="w-7 h-7 rounded-full bg-gray-300 shrink-0 overflow-hidden flex items-center justify-center text-xs font-semibold text-gray-600">
+          <div className="w-7 h-7 rounded-full bg-gray-300 shrink-0 overflow-hidden flex items-center justify-center font-semibold text-gray-600">
             {userName?.[0]?.toUpperCase() ?? '?'}
           </div>
-          <span className="text-sm truncate">
+          <span className="truncate">
             {userName ?? userEmail ?? 'User'}
           </span>
         </button>

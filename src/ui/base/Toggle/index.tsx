@@ -10,7 +10,7 @@ type ToggleProps = {
 export default function Toggle({ label, checked = false, onChange, className }: ToggleProps) {
   return (
     <div className={`flex items-center justify-between px-3 ${className ?? ''}`}>
-      {label && <span className="text-base text-black">{label}</span>}
+      {label && <span className="text-black">{label}</span>}
       <button
         role="switch"
         aria-checked={checked}

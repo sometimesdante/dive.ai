@@ -10,7 +10,9 @@
       "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies?.next || p.devDependencies?.next\\)\")",
       "Read(//dev/**)",
       "Bash(node:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(sed -i 's/<h2 className=\"font-semibold tracking-wide leading-tight\">/<h4 className=\"font-semibold tracking-wide leading-tight\">/g; s/<h2 className=\"text-\\\\[#063530\\\\] tracking-wide px-3\">/<h4 className=\"text-[#063530] tracking-wide px-3\">/g' \"d:/code/dive.ai/src/ui/dive/OrgSettings/index.tsx\")",
+      "Bash(sed -i 's/<\\\\/h2>/<\\\\/h4>/g' \"d:/code/dive.ai/src/ui/dive/OrgSettings/index.tsx\")"
     ]
   }
 }

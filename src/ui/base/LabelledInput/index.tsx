@@ -17,7 +17,7 @@ type LabelledInputProps = {
 export default function LabelledInput({ label, type = 'text', name, id, placeholder, value, options = [], onChange, className }: LabelledInputProps) {
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className ?? ''}`}>
-      <span className="text-[13px] text-[#838383] px-3">{label}</span>
+      <span className="text-[#838383] px-3">{label}</span>
       {type === 'dropdown' ? (
         <Dropdown
           name={name}

@@ -16,7 +16,7 @@ export default function Button({ children = 'Login', state = 'default', onClick,
         onClick={onClick}
         className={`bg-[#f2f2f2] border border-[#838383] flex h-8 items-center justify-center px-6 rounded cursor-pointer ${className ?? ''}`}
       >
-        <span className="text-[#242424] text-base">{children}</span>
+        <span className="text-[#242424]">{children}</span>
       </button>
     )
   }
@@ -28,7 +28,7 @@ export default function Button({ children = 'Login', state = 'default', onClick,
         onClick={onClick}
         className={`bg-[#da1e28] flex h-8 items-center justify-center px-6 rounded cursor-pointer ${className ?? ''}`}
       >
-        <span className="text-[#f2f2f2] text-base">{children}</span>
+        <span className="text-[#f2f2f2]">{children}</span>
       </button>
     )
   }
@@ -40,7 +40,7 @@ export default function Button({ children = 'Login', state = 'default', onClick,
         onClick={onClick}
         className={`bg-[#242424] flex h-8 items-center justify-between px-3 rounded cursor-pointer w-full ${className ?? ''}`}
       >
-        <span className="text-[#d3d3d3] text-base">{children}</span>
+        <span className="text-[#d3d3d3]">{children}</span>
         <ArrowRight size={12} className="text-[#d3d3d3]" />
       </button>
     )
@@ -53,7 +53,7 @@ export default function Button({ children = 'Login', state = 'default', onClick,
         onClick={onClick}
         className={`bg-[#242424] flex h-8 items-center justify-between px-3 rounded cursor-pointer w-full ${className ?? ''}`}
       >
-        <span className="text-[#d3d3d3] text-base">{children}</span>
+        <span className="text-[#d3d3d3]">{children}</span>
         <Plus size={12} className="text-[#d3d3d3]" />
       </button>
     )
@@ -65,7 +65,7 @@ export default function Button({ children = 'Login', state = 'default', onClick,
       onClick={onClick}
       className={`bg-[#242424] flex h-8 items-center justify-center px-6 rounded cursor-pointer w-full ${className ?? ''}`}
     >
-      <span className="text-[#d3d3d3] text-base">{children}</span>
+      <span className="text-[#d3d3d3]">{children}</span>
     </button>
   )
 }

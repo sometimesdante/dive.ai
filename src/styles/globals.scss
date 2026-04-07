@@ -1,5 +1,6 @@
-@use 'tailwindcss';
-@import url('https://use.typekit.net/voy0dip.css');
+@use "tailwindcss";
+@import url("https://use.typekit.net/iiq0ckv.css");
+@import url("https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,1..1000;1,1..1000&display=swap");
 
 // Mixins
 @mixin for-tablet-up {
@@ -45,7 +46,7 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'neue-haas-grotesk-display', sans-serif;
+  font-family: "Sofia Sans", sans-serif;
   font-optical-sizing: auto;
   font-weight: normal;
   word-wrap: break-word;
@@ -69,8 +70,9 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'neue-haas-grotesk-display', sans-serif;
-  font-optical-sizing: auto;
+  font-family: "polymath-display", sans-serif;
+  font-weight: 600;
+  font-style: normal;
 }
 
 @layer base {
@@ -80,9 +82,10 @@ h6 {
   h4,
   h5,
   h6 {
-    font-weight: 300;
+    font-family: "polymath-display", sans-serif;
+    font-weight: 600;
     font-style: normal;
-    color: #a2a2a2;
+    color: #063530;
     font-size: 2.4rem;
     b {
       font-weight: 600;
@@ -112,16 +115,16 @@ h5 {
   font-size: 1.4rem;
 }
 h6 {
-  font-size: 1.2rem;
+  font-size: 1.125rem;
 }
 
 p,
 a,
 ul,
 ol,
-li {
-  font-family: 'neue-haas-grotesk-display', sans-serif;
-  font-optical-sizing: auto;
+li,
+button {
+  font-family: "Sofia Sans", sans-serif;
 }
 
 @layer base {
@@ -129,7 +132,8 @@ li {
   a,
   ul,
   ol,
-  li {
+  li,
+  button {
     font-style: normal;
     font-size: 1rem;
     color: #333333;
@@ -155,7 +159,6 @@ a,
 .font-semibold {
   font-weight: 500;
 }
-
 
 // Layouts
 .default-margin {

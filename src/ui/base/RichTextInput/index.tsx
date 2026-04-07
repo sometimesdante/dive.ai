@@ -13,7 +13,7 @@ export default function RichTextInput({ label, placeholder, value, onChange, nam
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className ?? ''}`}>
       {label && (
-        <span className="text-[13px] text-[#838383] px-3">{label}</span>
+        <span className="text-[#838383] px-3">{label}</span>
       )}
       <textarea
         name={name}
@@ -22,7 +22,7 @@ export default function RichTextInput({ label, placeholder, value, onChange, nam
         value={value}
         onChange={onChange}
         rows={rows}
-        className="bg-white border border-black px-3 py-2 rounded text-[13px] text-black w-full outline-none resize-none"
+        className="bg-white border border-black px-3 py-2 rounded text-black w-full outline-none resize-none"
       />
     </div>
   )

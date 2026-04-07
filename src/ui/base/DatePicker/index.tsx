@@ -18,7 +18,7 @@ export default function DatePicker({ value, onChange, name, id, className }: Dat
         id={id}
         value={value}
         onChange={onChange}
-        className="text-[13px] text-black outline-none bg-transparent w-full cursor-pointer"
+        className="text-black outline-none bg-transparent w-full cursor-pointer"
       />
     </div>
   )

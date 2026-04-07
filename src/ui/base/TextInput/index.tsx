@@ -21,7 +21,7 @@ export default function TextInput({ placeholder, value, onChange, type = 'text',
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="text-base text-black w-full outline-none bg-transparent"
+        className="text-black w-full outline-none bg-transparent"
       />
     </div>
   )
