@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 type TextInputProps = {
   placeholder?: string
   value?: string
+  defaultValue?: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   type?: 'text' | 'password' | 'search' | 'email'
   name?: string
@@ -10,7 +11,7 @@ type TextInputProps = {
   className?: string
 }
 
-export default function TextInput({ placeholder, value, onChange, type = 'text', name, id, className }: TextInputProps) {
+export default function TextInput({ placeholder, value, defaultValue, onChange, type = 'text', name, id, className }: TextInputProps) {
   return (
     <div className={`bg-white border border-black flex h-8 items-center px-3 rounded w-full ${className ?? ''}`}>
       {type === 'search' && <Search size={12} className="text-black shrink-0 mr-2" />}
@@ -20,6 +21,7 @@ export default function TextInput({ placeholder, value, onChange, type = 'text',
         id={id}
         placeholder={placeholder}
         value={value}
+        defaultValue={defaultValue}
         onChange={onChange}
         className="text-black w-full outline-none bg-transparent"
       />
