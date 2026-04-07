@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Settings } from 'lucide-react'
+import { Plus, Search, Settings, ChevronLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
 import CreateProjectPanel from '@/ui/dive/CreateProjectPanel'
@@ -24,9 +24,10 @@ type Task = {
   position: number
 }
 
-type Member  = { id: string; name: string | null; email: string | null }
-type Cluster = { id: string; name: string }
-type DropTarget = { stage: Task['stage']; index: number } | null
+type Member      = { id: string; name: string | null; email: string | null }
+type Cluster     = { id: string; name: string }
+type DropTarget  = { stage: Task['stage']; index: number } | null
+type ProjectStat = { total: number; done: number; members: Member[] }
 
 type ColumnDef = {
   label: string
@@ -71,9 +72,10 @@ type Props = {
   members: Member[]
   clusters: Cluster[]
   currentUserId: string
+  projectStats: Record<string, ProjectStat>
 }
 
-export default function ProjectsBoard({ projects, members, clusters, currentUserId }: Props) {
+export default function ProjectsBoard({ projects, members, clusters, currentUserId, projectStats }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -183,7 +185,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
     setCreateTaskOpen(true)
   }
 
-  async function handleCreateTask(e: React.FormEvent) {
+  async function handleCreateTask(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!selectedProjectId) return
     setTaskSaving(true)
@@ -222,7 +224,18 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
               className="text-black w-full outline-none bg-transparent"
             />
           </div>
+        </div>
 
+        <div className="flex items-center gap-2">
+          {selectedProject && (
+            <button
+              onClick={() => router.push(`/projects/${selectedProject.id}/settings`)}
+              className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
+            >
+              <span className="text-[#242424]">Settings</span>
+              <Settings size={12} className="text-[#242424]" />
+            </button>
+          )}
           <button
             onClick={() => setPanelOpen(true)}
             className="flex items-center gap-2 bg-[#242424] h-8 px-3 rounded cursor-pointer shrink-0 whitespace-nowrap"
@@ -230,31 +243,80 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
             <span className="text-[#d3d3d3]">Create project</span>
             <Plus size={12} className="text-[#d3d3d3]" />
           </button>
-
-          {selectedProject && (
-            <button
-              onClick={() => router.push(`/projects/${selectedProject.id}/settings`)}
-              className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
-            >
-              <span className="text-[#242424]">Project settings</span>
-              <Settings size={12} className="text-[#242424]" />
-            </button>
-          )}
         </div>
-
-        <Dropdown
-          value={selectedProjectId}
-          onChange={e => setSelectedProjectId(e.target.value)}
-          options={[
-            { label: 'All projects', value: '' },
-            ...projects.map(p => ({ label: p.name, value: p.id })),
-          ]}
-          className="w-60"
-        />
       </Topbar>
 
+      {/* Project header */}
+      {selectedProject && (
+        <div className="flex items-center gap-3 px-6 pt-5 pb-1 shrink-0">
+          <button
+            onClick={() => setSelectedProjectId('')}
+            className="flex items-center justify-center w-[42px] h-[42px] bg-[#f2f2f2] hover:bg-[#e8e8e8] transition-colors cursor-pointer rounded"
+          >
+            <ChevronLeft size={16} className="md:hidden" />
+            <ChevronLeft size={24} className="hidden md:block" />
+          </button>
+          <h2>{selectedProject.name}</h2>
+        </div>
+      )}
+
       {/* Body */}
-      {loadingTasks ? (
+      {!selectedProjectId ? (
+        <div className="flex-1 overflow-y-auto p-6">
+          {projects.length === 0 ? (
+            <p className="text-[#838383]">No projects yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+              {projects.map(p => {
+                const stat = projectStats[p.id] ?? { total: 0, done: 0, members: [] }
+                const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedProjectId(p.id)}
+                    className="bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] p-4 flex flex-col gap-2.5 text-left hover:shadow-[2px_6px_16px_0px_rgba(0,0,0,0.16)] transition-shadow"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="bg-[#f2f2f2] text-black text-xs px-2 py-0.5 rounded-full shrink-0">{p.code}</span>
+                      {stat.members.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          {stat.members.slice(0, 5).map(m => (
+                            <div
+                              key={m.id}
+                              title={m.name ?? m.email ?? ''}
+                              className="w-5 h-5 rounded-full bg-[#063530] text-white text-xs flex items-center justify-center shrink-0 uppercase"
+                            >
+                              {(m.name ?? m.email ?? '?')[0]}
+                            </div>
+                          ))}
+                          {stat.members.length > 5 && (
+                            <span className="text-xs text-[#838383]">+{stat.members.length - 5}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="text-black font-medium leading-tight flex-1">{p.name}</span>
+
+                    <div className="flex flex-col gap-1 mt-auto">
+                      <div className="flex justify-between text-xs text-[#838383]">
+                        <span>{stat.total} task{stat.total !== 1 ? 's' : ''}</span>
+                        <span>{rate}% done</span>
+                      </div>
+                      <div className="h-1 w-full bg-[#e8e8e8] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#14b8a6] rounded-full transition-all"
+                          style={{ width: `${rate}%` }}
+                        />
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      ) : loadingTasks ? (
         <div className="flex-1 flex items-center justify-center text-[#838383]">Loading…</div>
       ) : (
         // Kanban board
