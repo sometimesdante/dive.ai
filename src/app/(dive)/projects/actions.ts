@@ -48,7 +48,8 @@ export async function createTask(projectId: string, formData: FormData) {
   const name     = formData.get('name') as string
   const code     = formData.get('code') as string
   const owner_id = (formData.get('owner_id') as string) || null
-  const stage    = (formData.get('stage') as string) || 'backlog'
+  const stage  = (formData.get('stage') as string) || 'backlog'
+  const status = (formData.get('status') as string) || 'on-track'
 
   if (!name || !code) return { error: 'Name and code are required' }
 
@@ -67,6 +68,7 @@ export async function createTask(projectId: string, formData: FormData) {
     code,
     owner_id,
     stage,
+    status,
     position: (last?.position ?? 0) + 1,
   })
 

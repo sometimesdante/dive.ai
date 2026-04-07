@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
 import CreateProjectPanel from '@/ui/dive/CreateProjectPanel'
 import Topbar from '@/ui/dive/Topbar'
-import Dropdown from '@/ui/base/Dropdown'
-import Field from '@/ui/base/Field'
-import SlidePanel from '@/ui/base/SlidePanel'
+import { X } from 'lucide-react'
 import { createTask, updateTaskStage } from '@/app/(dive)/projects/actions'
 import { createClient } from '@/utils/supabase/client'
 
@@ -84,7 +82,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
   const [loadingTasks, setLoadingTasks]           = useState(false)
   const [search, setSearch]                       = useState('')
   const [panelOpen, setPanelOpen]                 = useState(false)
-  const [createTaskOpen, setCreateTaskOpen]       = useState(false)
+  const [inlineCreateStage, setInlineCreateStage] = useState<Task['stage'] | null>(null)
   const [draggedId, setDraggedId]                 = useState<string | null>(null)
   const [dropTarget, setDropTarget]               = useState<DropTarget>(null)
 
@@ -164,8 +162,9 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
   const [taskCode, setTaskCode]     = useState('')
   const [taskOwner, setTaskOwner]   = useState('')
   const [taskStage, setTaskStage]   = useState<Task['stage']>('backlog')
-  const [taskError, setTaskError]   = useState<string | null>(null)
-  const [taskSaving, setTaskSaving] = useState(false)
+  const [taskStatus, setTaskStatus] = useState<Task['status']>('on-track')
+  const [taskError, setTaskError]       = useState<string | null>(null)
+  const [taskSaving, setTaskSaving]     = useState(false)
 
   function generateTaskCode(): string {
     if (!selectedProject) return ''
@@ -182,7 +181,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
     setTaskStage(stage)
     setTaskCode(generateTaskCode())
     setTaskOwner(currentUserId)
-    setCreateTaskOpen(true)
+    setInlineCreateStage(stage)
   }
 
   async function handleCreateTask(e: React.FormEvent<HTMLFormElement>) {
@@ -195,6 +194,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
     fd.set('code', taskCode)
     fd.set('owner_id', taskOwner)
     fd.set('stage', taskStage)
+    fd.set('status', taskStatus)
     const result = await createTask(selectedProjectId, fd)
     setTaskSaving(false)
     if (result?.error) { setTaskError(result.error); return }
@@ -207,7 +207,8 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
     setTaskName('')
     setTaskCode('')
     setTaskOwner(currentUserId)
-    setCreateTaskOpen(false)
+    setTaskStatus('on-track')
+    setInlineCreateStage(null)
   }
 
   return (
@@ -368,12 +369,67 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
                   </div>
 
                   {selectedProject && (
-                    <button
-                      onClick={() => openCreateTask(col.stage)}
-                      className="mt-2 shrink-0 w-full flex items-center justify-center h-10 bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] text-[#838383] hover:text-[#242424] transition-colors cursor-pointer"
-                    >
-                      <Plus size={14} />
-                    </button>
+                    inlineCreateStage === col.stage ? (
+                      <form
+                        onSubmit={handleCreateTask}
+                        className="mt-2 shrink-0 bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] p-3 flex flex-col gap-2"
+                      >
+                        <input
+                          autoFocus
+                          required
+                          value={taskName}
+                          onChange={e => setTaskName(e.target.value)}
+                          placeholder="Task name"
+                          className="bg-[#f2f2f2] border border-[#e8e8e8] h-8 px-3 rounded text-black outline-none w-full text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <select
+                            value={taskOwner}
+                            onChange={e => setTaskOwner(e.target.value)}
+                            className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none flex-1 text-sm"
+                          >
+                            <option value="">— none —</option>
+                            {members.map(m => (
+                              <option key={m.id} value={m.id}>{m.name ?? m.email ?? ''}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <select
+                          value={taskStatus}
+                          onChange={e => setTaskStatus(e.target.value as Task['status'])}
+                          className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none w-full text-sm"
+                        >
+                          <option value="default">No status</option>
+                          <option value="on-track">On track</option>
+                          <option value="approaching">Approaching</option>
+                          <option value="overdue">Overdue</option>
+                        </select>
+                        {taskError && <p className="text-red-600 text-xs">{taskError}</p>}
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={taskSaving}
+                            className="flex-1 bg-[#242424] h-8 rounded text-[#d3d3d3] text-sm cursor-pointer disabled:opacity-50"
+                          >
+                            {taskSaving ? 'Creating…' : 'Create'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setInlineCreateStage(null)}
+                            className="w-8 h-8 flex items-center justify-center bg-[#f2f2f2] rounded text-[#838383] hover:text-black transition-colors cursor-pointer"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => openCreateTask(col.stage)}
+                        className="mt-2 shrink-0 w-full flex items-center justify-center h-10 bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] text-[#838383] hover:text-[#242424] transition-colors cursor-pointer"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    )
                   )}
                 </div>
               )
@@ -391,56 +447,6 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
         currentUserId={currentUserId}
       />
 
-      {/* Create task panel */}
-      <SlidePanel open={createTaskOpen} onClose={() => setCreateTaskOpen(false)} width={360}>
-        <div>
-          <h3 className="font-semibold tracking-wide">New task</h3>
-          <p className="text-[#838383] mt-1">
-            {selectedProject?.name} · {columns.find(c => c.stage === taskStage)?.label}
-          </p>
-        </div>
-
-        <form onSubmit={handleCreateTask} className="flex flex-col gap-3 flex-1">
-          <input type="hidden" name="stage" value={taskStage} />
-
-          <Field label="Task name">
-            <input
-              required
-              value={taskName}
-              onChange={e => setTaskName(e.target.value)}
-              placeholder="e.g. Refactor data fetching"
-              className="bg-white border border-black h-8 px-3 rounded text-black outline-none w-full"
-            />
-          </Field>
-
-          <Field label="Code">
-            <div className="bg-[#e8e8e8] border border-[#c7c7c7] h-8 px-3 rounded text-[#838383] flex items-center w-full select-none">
-              {taskCode}
-            </div>
-          </Field>
-
-          <Field label="Assignee">
-            <Dropdown
-              value={taskOwner}
-              onChange={e => setTaskOwner(e.target.value)}
-              options={[
-                { label: '— none —', value: '' },
-                ...members.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
-              ]}
-            />
-          </Field>
-
-          {taskError && <p className="text-red-600">{taskError}</p>}
-
-          <button
-            type="submit"
-            disabled={taskSaving}
-            className="mt-auto bg-[#242424] h-8 px-3 rounded text-[#d3d3d3] cursor-pointer disabled:opacity-50 w-full"
-          >
-            {taskSaving ? 'Creating…' : 'Create task'}
-          </button>
-        </form>
-      </SlidePanel>
     </div>
   )
 }

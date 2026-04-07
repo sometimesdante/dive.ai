@@ -7,7 +7,7 @@ export default function Footer() {
       <hr className="w-full" />
       <div className="w-full flex justify-between items-center mt-2">
         <Link href="/" className="emphasized-two">
-          Dante © 2025
+          Made with ❤️ in SF © 2025
         </Link>
         <span className="flex justify-end items-center gap-2">
           <Link href="https://www.linkedin.com/in/sometimesdante/" target="_blank">
