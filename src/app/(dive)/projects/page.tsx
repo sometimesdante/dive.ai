@@ -23,7 +23,7 @@ export default async function ProjectsPage() {
     { data: clusters },
   ] = await Promise.all([
     orgId
-      ? supabase.from('projects').select('id, name, code').eq('org_id', orgId).eq('is_archived', false).order('name')
+      ? supabase.from('projects').select('id, name, code, planned_end').eq('org_id', orgId).eq('is_archived', false).order('name')
       : Promise.resolve({ data: [] }),
     orgId
       ? supabase.from('profiles').select('id, name, email').eq('org_id', orgId)

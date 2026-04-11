@@ -9,28 +9,27 @@ export default async function ProjectSettingsPage({ params }: { params: Promise<
 
   const [
     { data: project },
-    { data: taskAssignees },
+    { data: projectMemberRows },
     { data: orgMembers },
   ] = await Promise.all([
     supabase.from('projects').select('*').eq('id', id).single(),
-    supabase.from('tasks').select('owner_id, profiles!owner_id(id, name, email)').eq('project_id', id).not('owner_id', 'is', null),
+    supabase.from('project_members').select('profile_id, role, profiles(id, name, email)').eq('project_id', id),
     supabase.from('profiles').select('id, name, email').not('org_id', 'is', null),
   ])
 
-  // Deduplicate by profile id
-  const seen = new Set<string>()
-  const members = (taskAssignees ?? []).reduce<{ id: string; name: string | null; email: string | null }[]>((acc, t) => {
-    const p = t.profiles as unknown as { id: string; name: string | null; email: string | null } | null
-    if (p && !seen.has(p.id)) { seen.add(p.id); acc.push(p) }
-    return acc
-  }, [])
+  const members = (projectMemberRows ?? []).map(row => ({
+    id:    (row.profiles as any)?.id    as string,
+    name:  (row.profiles as any)?.name  as string | null,
+    email: (row.profiles as any)?.email as string | null,
+    role:  row.role,
+  })).filter(m => m.id)
 
   if (!project) notFound()
 
   return (
     <ProjectSettings
       project={project}
-      members={members ?? []}
+      members={members}
       orgMembers={orgMembers ?? []}
     />
   )

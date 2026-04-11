@@ -288,20 +288,22 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-10 h-10 flex items-center justify-center text-[#838383] hover:text-[#242424] hover:bg-[#f2f2f2] rounded transition-colors shrink-0"
-                title="Attach file"
-              >
-                <Paperclip size={16} />
-              </button>
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={`Message #${selectedProject?.name.toLowerCase()}`}
-                className="flex-1 bg-[#f2f2f2] border border-[#e8e8e8] h-10 px-4 rounded text-black outline-none text-sm"
-              />
+              <div className="flex-1 flex items-center bg-[#f2f2f2] border border-[#e8e8e8] rounded h-10 px-4 gap-2">
+                <input
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  placeholder={`Message #${selectedProject?.name.toLowerCase()}`}
+                  className="flex-1 bg-transparent text-black outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-[#838383] hover:text-[#242424] transition-colors shrink-0"
+                  title="Attach file"
+                >
+                  <Paperclip size={16} />
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={sending || uploading || (!input.trim() && !pendingFile)}

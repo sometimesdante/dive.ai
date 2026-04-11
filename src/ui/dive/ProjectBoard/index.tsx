@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Plus, Search, Settings, ChevronLeft, MoreHorizontal, X } from 'lucide-react'
+import { Plus, Search, Settings, ChevronLeft, MoreHorizontal, X, ArrowUpDown } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
 import Topbar from '@/ui/dive/Topbar'
@@ -23,6 +23,22 @@ type Task = {
 
 type Member     = { id: string; name: string | null; email: string | null }
 type DropTarget = { stage: Task['stage']; index: number } | null
+type SortKey    = 'manual' | 'alphabetical' | 'status' | 'assignee'
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'manual',       label: 'Manual'       },
+  { value: 'alphabetical', label: 'Alphabetical' },
+  { value: 'status',       label: 'Status'       },
+  { value: 'assignee',     label: 'Assignee'     },
+]
+
+const STATUS_ORDER: Record<Task['status'], number> = {
+  overdue:    0,
+  approaching: 1,
+  'on-track': 2,
+  default:    3,
+  complete:   4,
+}
 
 type ColumnDef = {
   label: string
@@ -79,6 +95,8 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
   const [draggedId, setDraggedId]                 = useState<string | null>(null)
   const [dropTarget, setDropTarget]               = useState<DropTarget>(null)
   const [menuOpenId, setMenuOpenId]               = useState<string | null>(null)
+  const [sort, setSort]                           = useState<SortKey>('manual')
+  const [sortOpen, setSortOpen]                   = useState(false)
   const [editingTaskId, setEditingTaskId]         = useState<string | null>(null)
   const [editName, setEditName]                   = useState('')
   const [editOwner, setEditOwner]                 = useState('')
@@ -105,11 +123,27 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
-    return tasks.filter(t =>
+    const base = tasks.filter(t =>
       t.name.toLowerCase().includes(q) ||
       t.code.toLowerCase().includes(q)
     )
-  }, [tasks, search])
+    if (sort === 'manual') return base
+    return [...base].sort((a, b) => {
+      switch (sort) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name)
+        case 'status':
+          return STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+        case 'assignee': {
+          const ma = members.find(m => m.id === a.owner_id)
+          const mb = members.find(m => m.id === b.owner_id)
+          const na = ma ? (ma.name ?? ma.email ?? '') : '\uFFFF'
+          const nb = mb ? (mb.name ?? mb.email ?? '') : '\uFFFF'
+          return na.localeCompare(nb)
+        }
+      }
+    })
+  }, [tasks, search, sort, members])
 
   // ── Drag handlers ───────────────────────────────────────
   function handleDragStart(e: React.DragEvent, id: string) {
@@ -200,7 +234,7 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
 
   // ── Create task ─────────────────────────────────────────
   function generateTaskCode(): string {
-    const prefix = project.code + '-T'
+    const prefix = project.code.replace(/-?\d+$/, '') + '-T'
     const nums = tasks
       .filter(t => t.project_id === project.id && t.code.startsWith(prefix))
       .map(t => parseInt(t.code.slice(prefix.length), 10))
@@ -245,25 +279,47 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
   return (
     <div className="flex flex-col h-full">
       <Topbar>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-white border border-[#e8e8e8] h-8 px-3 rounded w-60">
-            <Search size={12} className="text-[#838383] shrink-0" />
-            <input
-              type="search"
-              placeholder="Search tasks"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="text-black w-full outline-none bg-transparent"
-            />
-          </div>
+        <div className="flex items-center gap-2 bg-white border border-[#e8e8e8] h-8 px-3 rounded w-60">
+          <Search size={12} className="text-[#838383] shrink-0" />
+          <input
+            type="search"
+            placeholder="Search tasks"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="text-black w-full outline-none bg-transparent"
+          />
         </div>
-        <button
-          onClick={() => router.push(`/projects/${project.id}/settings`)}
-          className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
-        >
-          <span className="text-[#242424]">Settings</span>
-          <Settings size={12} className="text-[#242424]" />
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setSortOpen(o => !o)}
+              className="flex items-center gap-2 border border-[#e8e8e8] bg-white h-8 px-3 rounded cursor-pointer"
+            >
+              <ArrowUpDown size={12} className="text-[#838383]" />
+              <span className="text-sm text-[#333]">{SORT_OPTIONS.find(o => o.value === sort)?.label}</span>
+            </button>
+            {sortOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-white border border-[#e8e8e8] shadow-md z-20 min-w-[140px]">
+                {SORT_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSort(opt.value); setSortOpen(false) }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[#f2f2f2] transition-colors ${sort === opt.value ? 'text-[#242424] font-medium' : 'text-[#333]'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => router.push(`/projects/${project.id}/settings`)}
+            className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
+          >
+            <span className="text-[#242424]">Settings</span>
+            <Settings size={12} className="text-[#242424]" />
+          </button>
+        </div>
       </Topbar>
 
       {/* Project header */}
@@ -278,7 +334,7 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
       </div>
 
       {/* Kanban board */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6" onClick={() => sortOpen && setSortOpen(false)}>
         <div className="flex gap-4 h-full min-w-[640px]">
           {columns.map((col) => {
             const cards  = filtered.filter(t => t.stage === col.stage)

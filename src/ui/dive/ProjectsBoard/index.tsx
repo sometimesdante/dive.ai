@@ -1,17 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { Plus } from 'lucide-react'
+import { Plus, ArrowUpDown, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Topbar from '@/ui/dive/Topbar'
 
 const CreateProjectPanel = dynamic(() => import('@/ui/dive/CreateProjectPanel'))
 
-type Project  = { id: string; name: string; code: string }
+type Project  = { id: string; name: string; code: string; planned_end: string | null }
 type Member   = { id: string; name: string | null; email: string | null }
 type Cluster  = { id: string; name: string }
 type ProjectStat = { total: number; done: number; members: Member[] }
+
+type SortKey = 'alphabetical' | 'tasks' | 'deadline' | 'progress'
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'alphabetical', label: 'Alphabetical' },
+  { value: 'tasks',        label: 'No. of tasks'  },
+  { value: 'deadline',     label: 'Deadline'       },
+  { value: 'progress',     label: 'Progress'       },
+]
 
 type Props = {
   projects: Project[]
@@ -24,27 +33,93 @@ type Props = {
 export default function ProjectsBoard({ projects, members, clusters, currentUserId, projectStats }: Props) {
   const router = useRouter()
   const [panelOpen, setPanelOpen] = useState(false)
+  const [search, setSearch]       = useState('')
+  const [sort, setSort]           = useState<SortKey>('alphabetical')
+  const [sortOpen, setSortOpen]   = useState(false)
+
+  const sorted = useMemo(() => {
+    const q = search.toLowerCase()
+    const base = search
+      ? projects.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q))
+      : projects
+    return [...base].sort((a, b) => {
+      const sa = projectStats[a.id] ?? { total: 0, done: 0, members: [] }
+      const sb = projectStats[b.id] ?? { total: 0, done: 0, members: [] }
+      switch (sort) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name)
+        case 'tasks':
+          return sb.total - sa.total
+        case 'deadline': {
+          if (!a.planned_end && !b.planned_end) return 0
+          if (!a.planned_end) return 1
+          if (!b.planned_end) return -1
+          return a.planned_end.localeCompare(b.planned_end)
+        }
+        case 'progress': {
+          const ra = sa.total > 0 ? sa.done / sa.total : 0
+          const rb = sb.total > 0 ? sb.done / sb.total : 0
+          return rb - ra
+        }
+      }
+    })
+  }, [projects, projectStats, sort, search])
 
   return (
     <div className="flex flex-col h-full">
       <Topbar>
-        <div />
-        <button
-          onClick={() => setPanelOpen(true)}
-          className="flex items-center gap-2 bg-[#242424] h-8 px-3 rounded cursor-pointer shrink-0 whitespace-nowrap"
-        >
-          <span className="text-[#d3d3d3]">Create project</span>
-          <Plus size={12} className="text-[#d3d3d3]" />
-        </button>
+        <div className="flex items-center gap-2 bg-white border border-[#e8e8e8] h-8 px-3 rounded w-60">
+          <Search size={12} className="text-[#838383] shrink-0" />
+          <input
+            type="search"
+            placeholder="Search projects"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="text-black w-full outline-none bg-transparent"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Sort dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setSortOpen(o => !o)}
+              className="flex items-center gap-2 border border-[#e8e8e8] bg-white h-8 px-3 rounded cursor-pointer"
+            >
+              <ArrowUpDown size={12} className="text-[#838383]" />
+              <span className="text-sm text-[#333]">{SORT_OPTIONS.find(o => o.value === sort)?.label}</span>
+            </button>
+            {sortOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-white border border-[#e8e8e8] shadow-md z-20 min-w-[160px]">
+                {SORT_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSort(opt.value); setSortOpen(false) }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[#f2f2f2] transition-colors ${sort === opt.value ? 'text-[#242424] font-medium' : 'text-[#333]'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setPanelOpen(true)}
+            className="flex items-center gap-2 bg-[#242424] h-8 px-3 rounded cursor-pointer shrink-0 whitespace-nowrap"
+          >
+            <span className="text-[#d3d3d3]">Create project</span>
+            <Plus size={12} className="text-[#d3d3d3]" />
+          </button>
+        </div>
       </Topbar>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6" onClick={() => sortOpen && setSortOpen(false)}>
         <h4 className="text-[#063530] tracking-wide mb-6">All projects</h4>
-        {projects.length === 0 ? (
-          <p className="text-[#838383]">No projects yet.</p>
+        {sorted.length === 0 ? (
+          <p className="text-[#838383]">{search ? 'No projects match your search.' : 'No projects yet.'}</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {projects.map(p => {
+            {sorted.map(p => {
               const stat = projectStats[p.id] ?? { total: 0, done: 0, members: [] }
               const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0
               return (
@@ -94,13 +169,13 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
         )}
       </div>
 
-      <CreateProjectPanel
+      {panelOpen && <CreateProjectPanel
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
         clusters={clusters}
         members={members}
         currentUserId={currentUserId}
-      />
+      />}
     </div>
   )
 }

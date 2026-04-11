@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceClient } from '@/utils/supabase/service'
 
 export async function createOrganization(formData: FormData) {
   const supabase = createClient(await cookies())
@@ -20,7 +21,10 @@ export async function createOrganization(formData: FormData) {
 
   if (profile?.org_id) return { error: 'You are already part of an organisation' }
 
-  const { data: org, error: orgError } = await supabase
+  // Use service client for writes — auth is already validated above.
+  const service = createServiceClient()
+
+  const { data: org, error: orgError } = await service
     .from('organizations')
     .insert({ name })
     .select('id')
@@ -28,10 +32,15 @@ export async function createOrganization(formData: FormData) {
 
   if (orgError) return { error: orgError.message }
 
-  const { error: profileError } = await supabase
+  const { error: profileError } = await service
     .from('profiles')
-    .update({ org_id: org.id, role: 'admin' })
-    .eq('id', user.id)
+    .upsert({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name ?? null,
+      org_id: org.id,
+      role: 'admin',
+    })
 
   if (profileError) return { error: profileError.message }
 

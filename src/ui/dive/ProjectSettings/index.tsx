@@ -7,10 +7,13 @@ import Toggle from '@/ui/base/Toggle'
 import Field from '@/ui/base/Field'
 import Dropdown from '@/ui/base/Dropdown'
 import Topbar from '@/ui/dive/Topbar'
+import { Trash2 } from 'lucide-react'
 import {
   updateProjectSettings,
   archiveProject,
   deleteProject,
+  addProjectMember,
+  removeProjectMember,
 } from '@/app/(dive)/projects/[id]/settings/actions'
 
 type Project = {
@@ -31,7 +34,7 @@ type Project = {
   is_archived: boolean
 }
 
-type Member = { id: string; name: string | null; email: string | null }
+type Member    = { id: string; name: string | null; email: string | null; role: string }
 type OrgMember = { id: string; name: string | null; email: string | null }
 
 type Props = {
@@ -205,22 +208,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
               />
             </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[#838383] px-3">Project members</span>
-              <div className="flex flex-col gap-1.5">
-                {members.length === 0
-                  ? <span className="text-[#838383] px-3">No members assigned yet</span>
-                  : members.map(m => (
-                    <div
-                      key={m.id}
-                      className="flex items-center gap-1.5 bg-white border border-black h-[26px] px-3 rounded-full w-fit"
-                    >
-                      <span className="text-black">{m.name ?? m.email}</span>
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
+            <MembersSection project={project} members={members} orgMembers={orgMembers} />
           </div>
 
           {/* ── Column 3: Permissions + Integrations ── */}
@@ -281,3 +269,79 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
   )
 }
 
+function MembersSection({
+  project,
+  members,
+  orgMembers,
+}: {
+  project: Project
+  members: Member[]
+  orgMembers: OrgMember[]
+}) {
+  const memberIds = new Set(members.map(m => m.id))
+  const addable   = orgMembers.filter(m => !memberIds.has(m.id))
+
+  const [selectedId, setSelectedId] = useState('')
+  const [adding, setAdding]         = useState(false)
+  const [error, setError]           = useState<string | null>(null)
+
+  async function handleAdd() {
+    if (!selectedId) return
+    setAdding(true)
+    setError(null)
+    const result = await addProjectMember(project.id, selectedId, 'member')
+    setAdding(false)
+    if (result?.error) setError(result.error)
+    else setSelectedId('')
+  }
+
+  async function handleRemove(profileId: string) {
+    const result = await removeProjectMember(project.id, profileId)
+    if (result?.error) setError(result.error)
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[#838383] px-3">Project members</span>
+
+      {members.length === 0
+        ? <span className="text-[#838383] px-3">No members yet</span>
+        : members.map(m => (
+          <div key={m.id} className="flex items-center justify-between bg-white border border-[#c7c7c7] h-[34px] px-3 rounded">
+            <span className="text-black">{m.name ?? m.email}</span>
+            <button
+              onClick={() => handleRemove(m.id)}
+              className="text-[#838383] hover:text-[#da1e28] transition-colors"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        ))
+      }
+
+      {addable.length > 0 && (
+        <div className="flex gap-2 mt-1">
+          <select
+            value={selectedId}
+            onChange={e => setSelectedId(e.target.value)}
+            className="flex-1 bg-white border border-black h-8 px-2 rounded text-black outline-none text-sm"
+          >
+            <option value="">Add member…</option>
+            {addable.map(m => (
+              <option key={m.id} value={m.id}>{m.name ?? m.email}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleAdd}
+            disabled={!selectedId || adding}
+            className="bg-[#242424] h-8 px-3 rounded text-[#d3d3d3] text-sm disabled:opacity-40 cursor-pointer"
+          >
+            Add
+          </button>
+        </div>
+      )}
+
+      {error && <p className="text-red-600 px-3 text-sm">{error}</p>}
+    </div>
+  )
+}
