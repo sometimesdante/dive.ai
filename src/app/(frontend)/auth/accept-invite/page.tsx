@@ -107,10 +107,8 @@ export default async function AcceptInvitePage({
       )
     }
 
-    // All clear — accept the invite
-    await service.from('profiles').update({ org_id: invite.org_id }).eq('id', user.id)
-    await service.from('org_invites').update({ accepted_at: new Date().toISOString() }).eq('id', invite.id)
-    redirect('/dashboard')
+    // All clear — hand off to the route handler which can safely mutate
+    redirect(`/api/accept-invite?token=${token}`)
   }
 
   return (
