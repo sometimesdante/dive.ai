@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-import Smooth from '@/components/Smooth'
 import Sidebar from '@/ui/dive/Sidebar'
 import { createClient } from '@/utils/supabase/server'
 
@@ -16,14 +15,12 @@ export default async function DiveLayout({
   if (!user) redirect('/auth/login')
 
   return (
-    <Smooth>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar
-          userName={user?.user_metadata?.name}
-          userEmail={user?.email}
-        />
-        <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
-      </div>
-    </Smooth>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar
+        userName={user?.user_metadata?.name}
+        userEmail={user?.email}
+      />
+      <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Plus, Search, Settings, ChevronLeft, MoreHorizontal, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
@@ -94,10 +94,22 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
   const [taskError, setTaskError]   = useState<string | null>(null)
   const [taskSaving, setTaskSaving] = useState(false)
 
-  const filtered = tasks.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.code.toLowerCase().includes(search.toLowerCase())
-  )
+  const completionSound = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    completionSound.current = new Audio('/notifications/7_eleven.mp3')
+  }, [])
+
+  function playCompletionSound() {
+    completionSound.current?.play().catch(() => {})
+  }
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    return tasks.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      t.code.toLowerCase().includes(q)
+    )
+  }, [tasks, search])
 
   // ── Drag handlers ───────────────────────────────────────
   function handleDragStart(e: React.DragEvent, id: string) {
@@ -135,6 +147,7 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
     const prevStage    = dragged.stage
     const prevPosition = dragged.position
 
+    if (stage === 'done' && dragged.stage !== 'done') playCompletionSound()
     setTasks(prev =>
       prev.map(t => t.id === draggedId
         ? { ...t, stage, position: newPosition, status: (stage === 'done' ? 'complete' : stage === 'doing' ? 'on-track' : 'default') as Task['status'] }
@@ -173,6 +186,8 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
     const result = await updateTask(taskId, fd)
     setEditSaving(false)
     if (result?.error) { setEditError(result.error); return }
+    const prevTask = tasks.find(t => t.id === taskId)
+    if (editStatus === 'complete' && prevTask?.status !== 'complete') playCompletionSound()
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, name: editName, owner_id: editOwner || null, status: editStatus } : t))
     setEditingTaskId(null)
   }

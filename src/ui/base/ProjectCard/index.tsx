@@ -17,7 +17,9 @@ const statusGradient: Record<string, string> = {
   complete:   '#14b8a6',
 }
 
-export default function ProjectCard({ text, projectCode, status = 'default', className, draggable, onDragStart, onDragEnd, isDragging }: ProjectCardProps) {
+import { memo } from 'react'
+
+export default memo(function ProjectCard({ text, projectCode, status = 'default', className, draggable, onDragStart, onDragEnd, isDragging }: ProjectCardProps) {
   return (
     <div
       draggable={draggable}
@@ -37,4 +39,4 @@ export default function ProjectCard({ text, projectCode, status = 'default', cla
       <p className="text-black w-full">{text}</p>
     </div>
   )
-}
+})

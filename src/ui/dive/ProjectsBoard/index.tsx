@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import CreateProjectPanel from '@/ui/dive/CreateProjectPanel'
 import Topbar from '@/ui/dive/Topbar'
+
+const CreateProjectPanel = dynamic(() => import('@/ui/dive/CreateProjectPanel'))
 
 type Project  = { id: string; name: string; code: string }
 type Member   = { id: string; name: string | null; email: string | null }

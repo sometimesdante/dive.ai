@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { Send, Paperclip, X, FileText, Image } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { sendMessage } from '@/app/(dive)/chat/actions'
@@ -31,7 +31,7 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function AttachmentPreview({ url, name, type }: { url: string; name: string; type: string }) {
+const AttachmentPreview = memo(function AttachmentPreview({ url, name, type }: { url: string; name: string; type: string }) {
   const isImage = type.startsWith('image/')
   if (isImage) {
     return (
@@ -51,7 +51,7 @@ function AttachmentPreview({ url, name, type }: { url: string; name: string; typ
       <span className="text-sm text-[#242424] truncate">{name}</span>
     </a>
   )
-}
+})
 
 export default function Chat({ clusters, projects, currentUserId }: Props) {
   const supabase = createClient()
@@ -67,8 +67,8 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
 
   const selectedProject = projects.find(p => p.id === selectedProjectId)
 
-  const clustered   = clusters.map(c => ({ ...c, projects: projects.filter(p => p.cluster_id === c.id) }))
-  const unclustered = projects.filter(p => p.cluster_id === null)
+  const clustered   = useMemo(() => clusters.map(c => ({ ...c, projects: projects.filter(p => p.cluster_id === c.id) })), [clusters, projects])
+  const unclustered = useMemo(() => projects.filter(p => p.cluster_id === null), [projects])
 
   const messageSelect = 'id, content, created_at, sender_id, profiles(name, email), attachment_url, attachment_name, attachment_type, attachment_size'
 
@@ -105,6 +105,16 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [selectedProjectId])
+
+  const displayMessages = useMemo(() =>
+    messages.map(msg => {
+      const name     = msg.profiles?.name ?? msg.profiles?.email ?? 'Unknown'
+      const initials = name[0].toUpperCase()
+      const time     = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      return { ...msg, name, initials, time }
+    }),
+    [messages]
+  )
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -145,13 +155,6 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
     const content = input.trim()
     setInput('')
     await sendMessage(selectedProjectId, content, attachment)
-
-    const { data } = await supabase
-      .from('messages')
-      .select(messageSelect)
-      .eq('project_id', selectedProjectId)
-      .order('created_at', { ascending: true })
-    setMessages((data as unknown as Message[]) ?? [])
     setSending(false)
   }
 
@@ -227,19 +230,15 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
             {messages.length === 0 && (
               <p className="text-[#838383] text-sm">No messages yet. Say hello!</p>
             )}
-            {messages.map(msg => {
-              const name     = msg.profiles?.name ?? msg.profiles?.email ?? 'Unknown'
-              const initials = name[0].toUpperCase()
-              const time     = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              return (
+            {displayMessages.map(msg => (
                 <div key={msg.id} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#063530] text-white text-xs flex items-center justify-center shrink-0 uppercase">
-                    {initials}
+                    {msg.initials}
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="font-semibold text-sm text-[#242424]">{name}</span>
-                      <span className="text-xs text-[#838383]">{time}</span>
+                      <span className="font-semibold text-sm text-[#242424]">{msg.name}</span>
+                      <span className="text-xs text-[#838383]">{msg.time}</span>
                     </div>
                     {msg.content && <p className="text-sm text-[#242424]">{msg.content}</p>}
                     {msg.attachment_url && msg.attachment_name && msg.attachment_type && (
@@ -254,8 +253,7 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
                     )}
                   </div>
                 </div>
-              )
-            })}
+            ))}
             <div ref={bottomRef} />
           </div>
 

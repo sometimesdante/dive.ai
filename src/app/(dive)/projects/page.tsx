@@ -17,24 +17,28 @@ export default async function ProjectsPage() {
 
   const orgId = profile?.org_id
 
-  const { data: projects } = orgId
-    ? await supabase.from('projects').select('id, name, code').eq('org_id', orgId).eq('is_archived', false).order('name')
-    : { data: [] }
-
-  const projectIds = (projects ?? []).map(p => p.id)
-
   const [
+    { data: projects },
     { data: members },
     { data: clusters },
-    { data: allTasks },
-    { data: projectMembersData },
   ] = await Promise.all([
+    orgId
+      ? supabase.from('projects').select('id, name, code').eq('org_id', orgId).eq('is_archived', false).order('name')
+      : Promise.resolve({ data: [] }),
     orgId
       ? supabase.from('profiles').select('id, name, email').eq('org_id', orgId)
       : Promise.resolve({ data: [] }),
     orgId
       ? supabase.from('clusters').select('id, name').eq('org_id', orgId).order('name')
       : Promise.resolve({ data: [] }),
+  ])
+
+  const projectIds = (projects ?? []).map(p => p.id)
+
+  const [
+    { data: allTasks },
+    { data: projectMembersData },
+  ] = await Promise.all([
     projectIds.length
       ? supabase.from('tasks').select('id, project_id, stage').in('project_id', projectIds)
       : Promise.resolve({ data: [] }),
