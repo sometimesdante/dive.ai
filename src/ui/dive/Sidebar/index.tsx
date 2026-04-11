@@ -69,7 +69,7 @@ export default function Sidebar({ userName, userEmail }: Props) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-2 py-2 transition-colors ${active ? 'font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
+              className={`flex items-center gap-3 px-2 py-2 transition-colors ${active ? 'font-semibold text-[#00C49A]' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               <Icon size={18} className="shrink-0" />
               {open && (
