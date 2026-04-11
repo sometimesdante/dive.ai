@@ -15,10 +15,10 @@ export default function Toggle({ label, checked = false, onChange, className }: 
         role="switch"
         aria-checked={checked}
         onClick={() => onChange?.(!checked)}
-        className={`relative h-4 w-[30px] rounded-full transition-colors cursor-pointer ${checked ? 'bg-[#00C49A]' : 'bg-[#c7c7c7]'}`}
+        className={`relative h-4 w-8 rounded-full transition-colors cursor-pointer ${checked ? 'bg-[#00C49A]' : 'bg-[#9ca3af]'}`}
       >
         <span
-          className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[14px]' : 'translate-x-0.5'}`}
+          className={`absolute top-[1px] h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[0px]' : '-translate-x-[14px]'}`}
         />
       </button>
     </div>

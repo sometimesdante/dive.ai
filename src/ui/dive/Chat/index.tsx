@@ -154,7 +154,11 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
 
     const content = input.trim()
     setInput('')
-    await sendMessage(selectedProjectId, content, attachment)
+    const result = await sendMessage(selectedProjectId, content, attachment)
+    if (result?.error) {
+      console.error('[sendMessage]', result.error)
+      setInput(content)
+    }
     setSending(false)
   }
 

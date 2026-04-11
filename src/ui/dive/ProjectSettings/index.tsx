@@ -131,10 +131,10 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
       </Topbar>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex gap-6">
+        <div className="grid grid-cols-4 gap-6 items-start">
 
           {/* ── Column 1: Project details ── */}
-          <div className="flex flex-col gap-3 w-[294px] shrink-0">
+          <div className="flex flex-col gap-3">
             <h4 className="text-[#063530] tracking-wide px-3">Project details</h4>
 
             <Field label="Prefix*">
@@ -191,7 +191,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
           </div>
 
           {/* ── Column 2: Members ── */}
-          <div className="flex flex-col gap-3 w-[294px] shrink-0">
+          <div className="flex flex-col gap-3">
             <h4 className="text-[#063530] tracking-wide px-3">Members</h4>
 
             <Field label="Project owner">
@@ -224,7 +224,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
           </div>
 
           {/* ── Column 3: Permissions + Integrations ── */}
-          <div className="flex flex-col gap-6 w-[294px] shrink-0">
+          <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-3">
               <h4 className="text-[#063530] tracking-wide px-3">Manage permissions</h4>
               <Toggle label="Public visibility"          checked={isPublic}            onChange={setIsPublic} />
@@ -248,7 +248,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
           </div>
 
           {/* ── Column 4: Admin ── */}
-          <div className="flex flex-col gap-3 w-[294px] shrink-0">
+          <div className="flex flex-col gap-3">
             <h4 className="text-[#063530] tracking-wide px-3">Admin</h4>
 
             <Field label="Cost Center Code">
@@ -280,3 +280,4 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
     </div>
   )
 }
+

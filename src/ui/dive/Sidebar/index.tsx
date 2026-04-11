@@ -106,8 +106,12 @@ export default function Sidebar({ userName, userEmail }: Props) {
         </div>
       ) : (
         <div className="flex justify-center px-3 py-4 border-t border-gray-100">
-          <button onClick={() => setOpen(true)} className="p-1 rounded hover:bg-gray-100">
-            <Menu size={20} />
+          <button
+            onClick={handleLogout}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            title="Log out"
+          >
+            <LogOut size={18} />
           </button>
         </div>
       )}

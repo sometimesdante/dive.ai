@@ -39,6 +39,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
       </Topbar>
 
       <div className="flex-1 overflow-y-auto p-6">
+        <h4 className="text-[#063530] tracking-wide mb-6">All projects</h4>
         {projects.length === 0 ? (
           <p className="text-[#838383]">No projects yet.</p>
         ) : (
@@ -50,7 +51,7 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
                 <button
                   key={p.id}
                   onClick={() => router.push(`/projects/${p.id}`)}
-                  className="bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] p-4 flex flex-col gap-2.5 text-left hover:shadow-[2px_6px_16px_0px_rgba(0,0,0,0.16)] transition-shadow"
+                  className="bg-white shadow-[2px_4px_8px_0px_rgba(0,0,0,0.12)] p-4 flex flex-col gap-2.5 text-left hover:shadow-[2px_6px_16px_0px_rgba(0,0,0,0.16)] transition-shadow cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="bg-[#f2f2f2] text-black text-xs px-2 py-0.5 rounded-full shrink-0">{p.code}</span>

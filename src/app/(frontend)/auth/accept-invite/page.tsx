@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceClient } from '@/utils/supabase/service'
@@ -49,7 +48,6 @@ export default async function AcceptInvitePage({
 
     // Already in the invited org — nothing to do
     if (currentOrgId === invite.org_id) {
-      revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
 
@@ -112,7 +110,6 @@ export default async function AcceptInvitePage({
     // All clear — accept the invite
     await service.from('profiles').update({ org_id: invite.org_id }).eq('id', user.id)
     await service.from('org_invites').update({ accepted_at: new Date().toISOString() }).eq('id', invite.id)
-    revalidatePath('/', 'layout')
     redirect('/dashboard')
   }
 

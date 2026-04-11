@@ -20,7 +20,8 @@
       "WebFetch(domain:blush.design)",
       "WebFetch(domain:www.humaaans.com)",
       "Bash(find /d/code/dive.ai/src -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec grep -l \"project\" {} \\\\;)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(npx supabase:*)"
     ]
   }
 }

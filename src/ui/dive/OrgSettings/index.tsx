@@ -47,13 +47,15 @@ export default function OrgSettings({ profile, org, clusters, members, invites }
       </Topbar>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-4 gap-6 items-start">
           <div className="flex flex-col gap-6">
             {isAdmin && <OrgColumn org={org} onMutate={() => router.refresh()} />}
             <ClustersColumn clusters={clusters} onMutate={() => router.refresh()} />
           </div>
-          <MembersColumn members={members} />
-          {isAdmin && <InvitesColumn invites={invites} onMutate={() => router.refresh()} />}
+          <div className="flex flex-col gap-6">
+            <MembersColumn members={members} />
+            {isAdmin && <InvitesColumn invites={invites} onMutate={() => router.refresh()} />}
+          </div>
         </div>
       </div>
     </div>
