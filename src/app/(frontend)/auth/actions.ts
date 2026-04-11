@@ -59,12 +59,33 @@ export async function acceptInvite(token: string) {
 
   const { data: invite, error: fetchError } = await service
     .from('org_invites')
-    .select('id, org_id, accepted_at')
+    .select('id, org_id, email, accepted_at')
     .eq('token', token)
     .single()
 
   if (fetchError || !invite) return { error: 'Invalid or expired invite' }
   if (invite.accepted_at) return { error: 'This invite has already been used' }
+
+  const userEmail = user.email ?? ''
+  if (userEmail.toLowerCase() !== invite.email.toLowerCase()) {
+    return { error: `This invite is for ${invite.email}. You are signed in as ${userEmail}.` }
+  }
+
+  const { data: profile } = await service
+    .from('profiles')
+    .select('org_id')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.org_id && profile.org_id === invite.org_id) {
+    // Already in this org
+    revalidatePath('/', 'layout')
+    redirect('/dashboard')
+  }
+
+  if (profile?.org_id && profile.org_id !== invite.org_id) {
+    return { error: 'You are already a member of another organisation. Use the invite link directly to switch.' }
+  }
 
   const { error: profileError } = await service
     .from('profiles')

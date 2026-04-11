@@ -47,9 +47,11 @@ export default function OrgSettings({ profile, org, clusters, members, invites }
       </Topbar>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex gap-6 items-start">
-          {isAdmin && <OrgColumn org={org} onMutate={() => router.refresh()} />}
-          <ClustersColumn clusters={clusters} onMutate={() => router.refresh()} />
+        <div className="grid grid-cols-3 gap-6 items-start">
+          <div className="flex flex-col gap-6">
+            {isAdmin && <OrgColumn org={org} onMutate={() => router.refresh()} />}
+            <ClustersColumn clusters={clusters} onMutate={() => router.refresh()} />
+          </div>
           <MembersColumn members={members} />
           {isAdmin && <InvitesColumn invites={invites} onMutate={() => router.refresh()} />}
         </div>
@@ -130,7 +132,7 @@ function OrgColumn({ org, onMutate }: { org: Org; onMutate: () => void }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 w-[294px] shrink-0">
+    <div className="flex flex-col gap-3">
       <h4 className="text-[#063530] tracking-wide px-3">Organisation</h4>
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <Field label="Name">
@@ -181,7 +183,7 @@ function ClustersColumn({ clusters, onMutate }: { clusters: Cluster[]; onMutate:
   }
 
   return (
-    <div className="flex flex-col gap-3 w-[294px] shrink-0">
+    <div className="flex flex-col gap-3">
       <h4 className="text-[#063530] tracking-wide px-3">Clusters</h4>
 
       <div className="flex flex-col gap-1.5">
@@ -227,7 +229,7 @@ function ClustersColumn({ clusters, onMutate }: { clusters: Cluster[]; onMutate:
 
 function MembersColumn({ members }: { members: Member[] }) {
   return (
-    <div className="flex flex-col gap-3 w-[294px] shrink-0">
+    <div className="flex flex-col gap-3">
       <h4 className="text-[#063530] tracking-wide px-3">Members</h4>
 
       <div className="flex flex-col gap-1.5">
@@ -277,7 +279,7 @@ function InvitesColumn({ invites, onMutate }: { invites: Invite[]; onMutate: () 
   }
 
   return (
-    <div className="flex flex-col gap-3 w-[294px] shrink-0">
+    <div className="flex flex-col gap-3">
       <h4 className="text-[#063530] tracking-wide px-3">Pending invites</h4>
 
       <div className="flex flex-col gap-1.5">

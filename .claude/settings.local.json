@@ -18,7 +18,9 @@
       "WebFetch(domain:www.lummi.ai)",
       "WebFetch(domain:www.openpeeps.com)",
       "WebFetch(domain:blush.design)",
-      "WebFetch(domain:www.humaaans.com)"
+      "WebFetch(domain:www.humaaans.com)",
+      "Bash(find /d/code/dive.ai/src -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec grep -l \"project\" {} \\\\;)",
+      "Bash(npx next:*)"
     ]
   }
 }

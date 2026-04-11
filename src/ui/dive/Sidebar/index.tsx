@@ -12,6 +12,7 @@ import {
   Clock,
   MessageSquare,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -83,17 +84,26 @@ export default function Sidebar({ userName, userEmail }: Props) {
 
       {/* Bottom */}
       {open ? (
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-4 border-t border-gray-100 hover:bg-gray-100 transition-colors w-full text-left"
-        >
-          <div className="w-7 h-7 rounded-full bg-gray-300 shrink-0 overflow-hidden flex items-center justify-center font-semibold text-gray-600">
-            {userName?.[0]?.toUpperCase() ?? '?'}
-          </div>
-          <span className="truncate">
-            {userName ?? userEmail ?? 'User'}
-          </span>
-        </button>
+        <div className="flex items-center gap-1 px-3 py-4 border-t border-gray-100">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 flex-1 min-w-0 rounded px-1 py-1 hover:bg-gray-100 transition-colors"
+          >
+            <div className="w-7 h-7 rounded-full bg-gray-300 shrink-0 overflow-hidden flex items-center justify-center font-semibold text-gray-600">
+              {userName?.[0]?.toUpperCase() ?? '?'}
+            </div>
+            <span className="truncate text-sm">
+              {userName ?? userEmail ?? 'User'}
+            </span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors shrink-0"
+            title="Log out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       ) : (
         <div className="flex justify-center px-3 py-4 border-t border-gray-100">
           <button onClick={() => setOpen(true)} className="p-1 rounded hover:bg-gray-100">

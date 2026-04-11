@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceClient } from '@/utils/supabase/service'
 
 export async function createProject(formData: FormData) {
   const supabase = createClient(await cookies())
@@ -27,7 +28,7 @@ export async function createProject(formData: FormData) {
 
   if (!name || !code) return { error: 'Name and prefix are required' }
 
-  const { error } = await supabase.from('projects').insert({
+  const { data: project, error } = await supabase.from('projects').insert({
     org_id: profile.org_id,
     name,
     code,
@@ -35,11 +36,14 @@ export async function createProject(formData: FormData) {
     owner_id,
     planned_start,
     planned_end,
-  })
+  }).select('id').single()
 
   if (error) return { error: error.message }
 
-  revalidatePath('/projects')
+  const service = createServiceClient()
+  await service.from('project_members').insert({ project_id: project.id, profile_id: user.id, role: 'owner' })
+
+  revalidatePath('/projects', 'layout')
 }
 
 export async function createTask(projectId: string, formData: FormData) {
@@ -74,7 +78,39 @@ export async function createTask(projectId: string, formData: FormData) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/projects')
+  revalidatePath('/projects', 'layout')
+}
+
+export async function updateTask(taskId: string, formData: FormData) {
+  const supabase = createClient(await cookies())
+
+  const name     = formData.get('name') as string
+  const owner_id = (formData.get('owner_id') as string) || null
+  const status   = formData.get('status') as string
+
+  if (!name) return { error: 'Name is required' }
+
+  const { error } = await supabase
+    .from('tasks')
+    .update({ name, owner_id, status })
+    .eq('id', taskId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/projects', 'layout')
+}
+
+export async function deleteTask(taskId: string) {
+  const supabase = createClient(await cookies())
+
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', taskId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/projects', 'layout')
 }
 
 export async function updateTaskStage(taskId: string, stage: string, position: number) {
@@ -82,10 +118,10 @@ export async function updateTaskStage(taskId: string, stage: string, position: n
 
   const { error } = await supabase
     .from('tasks')
-    .update({ stage, position })
+    .update({ stage, position, status: stage === 'done' ? 'complete' : stage === 'doing' ? 'on-track' : 'default' })
     .eq('id', taskId)
 
   if (error) return { error: error.message }
 
-  revalidatePath('/projects')
+  revalidatePath('/projects', 'layout')
 }
