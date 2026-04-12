@@ -47,7 +47,7 @@ const supabase = createClient(await cookies());
   }
 
   revalidatePath("/", "layout");
-  redirect(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
+  redirect(`/auth/onboarding?email=${encodeURIComponent(data.email)}`);
 }
 
 export async function acceptInvite(token: string) {

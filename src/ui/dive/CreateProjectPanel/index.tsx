@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { ArrowRight, X } from 'lucide-react'
 import Field from '@/ui/base/Field'
+import { Input } from '@base-ui/react/input'
 import Dropdown from '@/ui/base/Dropdown'
 import SlidePanel from '@/ui/base/SlidePanel'
 import { createProject } from '@/app/(dive)/projects/actions'
@@ -79,7 +80,7 @@ export default function CreateProjectPanel({ open, onClose, clusters, members, c
         </Field>
 
         <Field label="Project Name">
-          <input
+          <Input
             name="name"
             required
             placeholder="e.g. Database Migration Tool"
@@ -89,7 +90,7 @@ export default function CreateProjectPanel({ open, onClose, clusters, members, c
         </Field>
 
         <Field label="Prefix*">
-          <input
+          <Input
             name="code"
             required
             value={prefix}
@@ -112,14 +113,14 @@ export default function CreateProjectPanel({ open, onClose, clusters, members, c
 
         <div className="flex gap-3">
           <Field label="Planned start" className="flex-1">
-            <input
+            <Input
               name="planned_start"
               type="date"
               className="bg-white border border-[#c7c7c7] h-8 px-3 rounded text-black outline-none w-full"
             />
           </Field>
           <Field label="Planned end" className="flex-1">
-            <input
+            <Input
               name="planned_end"
               type="date"
               className="bg-white border border-[#c7c7c7] h-8 px-3 rounded text-black outline-none w-full"

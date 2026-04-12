@@ -6,6 +6,8 @@ import { ArrowUpRight } from 'lucide-react'
 import Toggle from '@/ui/base/Toggle'
 import Field from '@/ui/base/Field'
 import Dropdown from '@/ui/base/Dropdown'
+import { Input } from '@base-ui/react/input'
+import { Field as BaseField } from '@base-ui/react/field'
 import Topbar from '@/ui/dive/Topbar'
 import { Trash2 } from 'lucide-react'
 import {
@@ -141,7 +143,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             <h4 className="text-[#063530] tracking-wide px-3">Project details</h4>
 
             <Field label="Prefix*">
-              <input
+              <Input
                 value={code}
                 onChange={e => setCode(e.target.value)}
                 className="bg-white border border-black h-8 px-3 rounded text-black outline-none w-full"
@@ -149,17 +151,17 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             </Field>
 
             <Field label="Description">
-              <textarea
+              <BaseField.Control
+                render={<textarea rows={4} />}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                rows={4}
                 className="bg-white border border-black px-3 py-2 rounded text-black outline-none w-full resize-none"
               />
             </Field>
 
             <div className="flex gap-3">
               <Field label="Planned start" className="flex-1">
-                <input
+                <Input
                   type="date"
                   value={plannedStart}
                   onChange={e => setPlannedStart(e.target.value)}
@@ -167,7 +169,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
                 />
               </Field>
               <Field label="Planned end" className="flex-1">
-                <input
+                <Input
                   type="date"
                   value={plannedEnd}
                   onChange={e => setPlannedEnd(e.target.value)}
@@ -179,7 +181,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             <Field label="Sprint Cadence">
               <Dropdown
                 value={sprintCadence}
-                onChange={e => setSprintCadence(e.target.value)}
+                onValueChange={setSprintCadence}
                 options={SPRINT_OPTIONS.map(o => ({ label: o, value: o }))}
               />
             </Field>
@@ -187,7 +189,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             <Field label="Timezone">
               <Dropdown
                 value={timezone}
-                onChange={e => setTimezone(e.target.value)}
+                onValueChange={setTimezone}
                 options={TIMEZONES.map(o => ({ label: o, value: o }))}
               />
             </Field>
@@ -200,7 +202,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             <Field label="Project owner">
               <Dropdown
                 value={ownerId}
-                onChange={e => setOwnerId(e.target.value)}
+                onValueChange={setOwnerId}
                 options={[
                   { label: '— none —', value: '' },
                   ...orgMembers.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
@@ -240,7 +242,7 @@ export default function ProjectSettings({ project, members, orgMembers }: Props)
             <h4 className="text-[#063530] tracking-wide px-3">Admin</h4>
 
             <Field label="Cost Center Code">
-              <input
+              <Input
                 value={costCenterCode}
                 onChange={e => setCostCenterCode(e.target.value)}
                 placeholder="e.g. ENG-DB-2024"
@@ -321,16 +323,15 @@ function MembersSection({
 
       {addable.length > 0 && (
         <div className="flex gap-2 mt-1">
-          <select
+          <Dropdown
             value={selectedId}
-            onChange={e => setSelectedId(e.target.value)}
-            className="flex-1 bg-white border border-black h-8 px-2 rounded text-black outline-none text-sm"
-          >
-            <option value="">Add member…</option>
-            {addable.map(m => (
-              <option key={m.id} value={m.id}>{m.name ?? m.email}</option>
-            ))}
-          </select>
+            onValueChange={setSelectedId}
+            options={[
+              { label: 'Add member…', value: '' },
+              ...addable.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
+            ]}
+            className="flex-1 border-black text-sm"
+          />
           <button
             onClick={handleAdd}
             disabled={!selectedId || adding}

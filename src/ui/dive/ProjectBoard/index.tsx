@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Plus, Search, Settings, ChevronLeft, MoreHorizontal, X, ArrowUpDown } from 'lucide-react'
+import { Plus, Search, Settings, ChevronLeft, MoreHorizontal, X, ArrowUpDown, BookOpen } from 'lucide-react'
+import Dropdown from '@/ui/base/Dropdown'
 import { useRouter } from 'next/navigation'
 import ProjectCard from '@/ui/base/ProjectCard'
 import Topbar from '@/ui/dive/Topbar'
@@ -84,6 +85,14 @@ type Props = {
   members: Member[]
   currentUserId: string
 }
+
+const STATUS_OPTIONS: { label: string; value: Task['status'] }[] = [
+  { label: 'No status',   value: 'default' },
+  { label: 'On track',    value: 'on-track' },
+  { label: 'Approaching', value: 'approaching' },
+  { label: 'Overdue',     value: 'overdue' },
+  { label: 'Complete',    value: 'complete' },
+]
 
 export default function ProjectBoard({ project, initialTasks, members, currentUserId }: Props) {
   const router  = useRouter()
@@ -313,10 +322,17 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
             )}
           </div>
           <button
+            onClick={() => router.push(`/projects/${project.id}/notes`)}
+            className="flex items-center gap-2 bg-[#f2f2f2] border border-[#e8e8e8] h-8 px-3 rounded cursor-pointer"
+          >
+            <BookOpen size={12} className="text-[#242424]" />
+            <span className="text-sm text-[#242424]">Notes</span>
+          </button>
+          <button
             onClick={() => router.push(`/projects/${project.id}/settings`)}
             className="flex items-center gap-2 bg-[#f2f2f2] border border-[#838383] h-8 px-3 rounded cursor-pointer"
           >
-            <span className="text-[#242424]">Settings</span>
+            <span className="text-sm text-[#242424]">Settings</span>
             <Settings size={12} className="text-[#242424]" />
           </button>
         </div>
@@ -372,27 +388,19 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
                               placeholder="Task name"
                               className="bg-[#f2f2f2] border border-[#e8e8e8] h-8 px-3 rounded text-black outline-none w-full text-sm"
                             />
-                            <select
+                            <Dropdown
                               value={editStatus}
-                              onChange={e => setEditStatus(e.target.value as Task['status'])}
-                              className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none w-full text-sm"
-                            >
-                              <option value="default">No status</option>
-                              <option value="on-track">On track</option>
-                              <option value="approaching">Approaching</option>
-                              <option value="overdue">Overdue</option>
-                              <option value="complete">Complete</option>
-                            </select>
-                            <select
+                              onValueChange={v => setEditStatus(v as Task['status'])}
+                              options={STATUS_OPTIONS}
+                            />
+                            <Dropdown
                               value={editOwner}
-                              onChange={e => setEditOwner(e.target.value)}
-                              className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none w-full text-sm"
-                            >
-                              <option value="">— none —</option>
-                              {members.map(m => (
-                                <option key={m.id} value={m.id}>{m.name ?? m.email ?? ''}</option>
-                              ))}
-                            </select>
+                              onValueChange={setEditOwner}
+                              options={[
+                                { label: '— none —', value: '' },
+                                ...members.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
+                              ]}
+                            />
                             {editError && <p className="text-red-600 text-xs">{editError}</p>}
                             <div className="flex gap-2">
                               <button
@@ -473,27 +481,19 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
                       placeholder="Task name"
                       className="bg-[#f2f2f2] border border-[#e8e8e8] h-8 px-3 rounded text-black outline-none w-full text-sm"
                     />
-                    <select
+                    <Dropdown
                       value={taskStatus}
-                      onChange={e => setTaskStatus(e.target.value as Task['status'])}
-                      className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none w-full text-sm"
-                    >
-                      <option value="default">No status</option>
-                      <option value="on-track">On track</option>
-                      <option value="approaching">Approaching</option>
-                      <option value="overdue">Overdue</option>
-                      <option value="complete">Complete</option>
-                    </select>
-                    <select
+                      onValueChange={v => setTaskStatus(v as Task['status'])}
+                      options={STATUS_OPTIONS}
+                    />
+                    <Dropdown
                       value={taskOwner}
-                      onChange={e => setTaskOwner(e.target.value)}
-                      className="bg-white border border-[#c7c7c7] h-8 px-2 rounded text-black outline-none w-full text-sm"
-                    >
-                      <option value="">— none —</option>
-                      {members.map(m => (
-                        <option key={m.id} value={m.id}>{m.name ?? m.email ?? ''}</option>
-                      ))}
-                    </select>
+                      onValueChange={setTaskOwner}
+                      options={[
+                        { label: '— none —', value: '' },
+                        ...members.map(m => ({ label: m.name ?? m.email ?? '', value: m.id })),
+                      ]}
+                    />
                     {taskError && <p className="text-red-600 text-xs">{taskError}</p>}
                     <div className="flex gap-2">
                       <button

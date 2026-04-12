@@ -1,3 +1,4 @@
+import { Input } from '@base-ui/react/input'
 import { Search } from 'lucide-react'
 
 type TextInputProps = {
@@ -15,7 +16,7 @@ export default function TextInput({ placeholder, value, defaultValue, onChange, 
   return (
     <div className={`bg-white border border-black flex h-8 items-center px-3 rounded w-full ${className ?? ''}`}>
       {type === 'search' && <Search size={12} className="text-black shrink-0 mr-2" />}
-      <input
+      <Input
         type={type === 'search' ? 'search' : type}
         name={name}
         id={id}

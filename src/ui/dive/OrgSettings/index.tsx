@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Copy, ArrowRight, Check } from 'lucide-react'
 import Field from '@/ui/base/Field'
+import { Input } from '@base-ui/react/input'
 import Topbar from '@/ui/dive/Topbar'
 import {
   createOrganization,
@@ -90,7 +91,7 @@ function CreateOrgSection({ onCreated }: { onCreated: () => void }) {
         </div>
 
         <Field label="Organisation name">
-          <input
+          <Input
             value={name}
             onChange={e => setName(e.target.value)}
             required
@@ -138,7 +139,7 @@ function OrgColumn({ org, onMutate }: { org: Org; onMutate: () => void }) {
       <h4 className="text-[#063530] tracking-wide px-3">Organisation</h4>
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <Field label="Name">
-          <input
+          <Input
             value={name}
             onChange={e => setName(e.target.value)}
             required
@@ -204,7 +205,7 @@ function ClustersColumn({ clusters, onMutate }: { clusters: Cluster[]; onMutate:
 
       <form ref={formRef} onSubmit={handleCreate} className="flex flex-col gap-2">
         <Field label="New cluster">
-          <input
+          <Input
             name="name"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -305,7 +306,7 @@ function InvitesColumn({ invites, onMutate }: { invites: Invite[]; onMutate: () 
 
       <form ref={formRef} onSubmit={handleInvite} className="flex flex-col gap-2">
         <Field label="Invite by email">
-          <input
+          <Input
             name="email"
             type="email"
             value={email}

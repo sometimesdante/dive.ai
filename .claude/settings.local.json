@@ -22,7 +22,14 @@
       "Bash(find /d/code/dive.ai/src -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec grep -l \"project\" {} \\\\;)",
       "Bash(npx next:*)",
       "Bash(npx supabase:*)",
-      "Bash(python -c \"import sys,json; p=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in {**p.get\\('dependencies',{}\\), **p.get\\('devDependencies',{}\\)}.items\\(\\)]\")"
+      "Bash(python -c \"import sys,json; p=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in {**p.get\\('dependencies',{}\\), **p.get\\('devDependencies',{}\\)}.items\\(\\)]\")",
+      "Bash(npx tsc:*)",
+      "Bash(grep -n \"typography\\\\|prose\" d:/code/dive.ai/tailwind.config.*)",
+      "Bash(cat d:/code/dive.ai/next.config.*)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(ls d:/code/dive.ai/next.config.*)",
+      "Bash(npm search:*)",
+      "Bash(grep -r \"setContent\" node_modules/@tiptap/core/dist/*.d.ts)"
     ]
   }
 }

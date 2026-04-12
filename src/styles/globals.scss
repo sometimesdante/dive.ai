@@ -183,6 +183,90 @@ a,
   font: inherit;
 }
 
+// TipTap editor — scoped to avoid inheriting the global heading sizes
+.tiptap-editor {
+  .ProseMirror {
+    outline: none;
+    min-height: 100%;
+    font-family: "Sofia Sans", sans-serif;
+    font-size: 0.875rem;
+    color: #242424;
+    line-height: 1.7;
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: "polymath-display", sans-serif;
+      font-weight: 600;
+      color: #242424;
+      margin-top: 1.25em;
+      margin-bottom: 0.4em;
+    }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.2rem; }
+    h3 { font-size: 1rem; }
+    h4, h5, h6 { font-size: 0.875rem; }
+
+    p { margin-bottom: 0.5em; }
+    p:last-child { margin-bottom: 0; }
+
+    strong { font-weight: 600; }
+    em { font-style: italic; }
+    s { text-decoration: line-through; }
+
+    ul, ol {
+      padding-left: 1.4em;
+      margin-bottom: 0.5em;
+      li { margin-bottom: 0.2em; }
+    }
+    ul { list-style-type: disc; }
+    ol { list-style-type: decimal; }
+
+    blockquote {
+      border-left: 3px solid #e8e8e8;
+      padding: 0.5em 0 0.5em 1em;
+      color: #838383;
+      margin: 0.75em 0;
+    }
+
+    code {
+      background: #f2f2f2;
+      border-radius: 3px;
+      padding: 0.1em 0.35em;
+      font-size: 0.8rem;
+      font-family: ui-monospace, monospace;
+      color: #063530;
+    }
+
+    pre {
+      background: #f2f2f2;
+      border-radius: 6px;
+      padding: 0.85em 1em;
+      margin: 0.75em 0;
+      overflow-x: auto;
+      code {
+        background: none;
+        padding: 0;
+        font-size: 0.8rem;
+        color: #242424;
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e8e8e8;
+      margin: 1.25em 0;
+    }
+
+    // Placeholder
+    p.is-editor-empty:first-child::before {
+      content: attr(data-placeholder);
+      color: #c0c0c0;
+      pointer-events: none;
+      float: left;
+      height: 0;
+    }
+  }
+}
+
 // Custom Styles
 
 // Animations

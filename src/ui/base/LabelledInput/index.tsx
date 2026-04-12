@@ -10,11 +10,12 @@ type LabelledInputProps = {
   placeholder?: string
   value?: string
   options?: { label: string; value: string }[]
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onValueChange?: (value: string) => void
   className?: string
 }
 
-export default function LabelledInput({ label, type = 'text', name, id, placeholder, value, options = [], onChange, className }: LabelledInputProps) {
+export default function LabelledInput({ label, type = 'text', name, id, placeholder, value, options = [], onChange, onValueChange, className }: LabelledInputProps) {
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className ?? ''}`}>
       <span className="text-[#838383] px-3">{label}</span>
@@ -24,14 +25,14 @@ export default function LabelledInput({ label, type = 'text', name, id, placehol
           id={id}
           value={value}
           options={options}
-          onChange={onChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+          onValueChange={onValueChange}
         />
       ) : type === 'date' ? (
         <DatePicker
           name={name}
           id={id}
           value={value}
-          onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+          onChange={onChange}
         />
       ) : (
         <TextInput
@@ -40,7 +41,7 @@ export default function LabelledInput({ label, type = 'text', name, id, placehol
           type={type}
           placeholder={placeholder}
           value={value}
-          onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+          onChange={onChange}
         />
       )}
     </div>
