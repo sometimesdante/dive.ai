@@ -6,8 +6,6 @@
 
 <p><a href="https://www.projectdive.app">projectdive.app</a></p>
 
-<img src="public/illustrations/homepage.png" alt="Dive" width="720">
-
 </div>
 
 ## What it does
@@ -21,13 +19,6 @@ Dive gives an organisation one place to plan projects, talk about them and write
 - **Project settings.** Planned start and end dates, sprint cadence (weekly, bi-weekly, monthly), time zone, cost centre code, public or private, archive, and switches for pages, tickets and time tracking.
 - **Project chat.** A live chat for each project on Supabase Realtime, with file attachments.
 - **Notes.** A rich text editor (TipTap) stored as Markdown, with version history you can restore from. Any note can be viewed as a mind map (Markmap).
-
-## Screenshots
-
-| | |
-|---|---|
-| <img src="public/illustrations/project boards.png" alt="Project boards" width="360"> | <img src="public/illustrations/team workspace.png" alt="Team workspace" width="360"> |
-| <img src="public/illustrations/notes and docs.png" alt="Notes and docs" width="360"> | <img src="public/illustrations/time tracking.png" alt="Time tracking" width="360"> |
 
 ## Stack
 
