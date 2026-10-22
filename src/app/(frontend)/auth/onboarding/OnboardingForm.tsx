@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { X, Plus } from "lucide-react";
 import Button from "@/ui/base/Button";
 import TextInput from "@/ui/base/TextInput";
@@ -9,8 +9,6 @@ import { createOrgAndCluster, onboardingInviteUsers } from "./actions";
 
 export default function OnboardingForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") ?? "";
 
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +53,7 @@ export default function OnboardingForm() {
         return;
       }
     }
-    router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+    router.push("/dashboard");
   };
 
   return (

@@ -8,6 +8,7 @@ import Dropdown from '@/ui/base/Dropdown'
 import SlidePanel from '@/ui/base/SlidePanel'
 import { createProject } from '@/app/(dive)/projects/actions'
 import { createClient } from '@/utils/supabase/client'
+import { nextProjectCode, projectInitials } from '@/utils/projects'
 
 type Member  = { id: string; name: string | null; email: string | null }
 type Cluster = { id: string; name: string }
@@ -21,17 +22,13 @@ type Props = {
 }
 
 async function generatePrefix(name: string): Promise<string> {
-  const initials = name.split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join('')
+  const initials = projectInitials(name)
   const supabase = createClient()
   const { data } = await supabase
     .from('projects')
     .select('code')
     .ilike('code', `${initials}-%`)
-  const nums = (data ?? [])
-    .map(p => parseInt(p.code.slice(initials.length + 1), 10))
-    .filter(n => !isNaN(n))
-  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
-  return `${initials}-${String(next).padStart(3, '0')}`
+  return nextProjectCode(initials, (data ?? []).map(p => p.code))
 }
 
 export default function CreateProjectPanel({ open, onClose, clusters, members, currentUserId }: Props) {

@@ -8,6 +8,15 @@ import ProjectCard from '@/ui/base/ProjectCard'
 import Topbar from '@/ui/dive/Topbar'
 import { createTask, updateTask, deleteTask, updateTaskStage } from '@/app/(dive)/projects/actions'
 import { createClient } from '@/utils/supabase/client'
+import {
+  dropPosition,
+  filterAndSortTasks,
+  nextTaskCode,
+  statusForStage,
+  type TaskSortKey,
+  type TaskStage,
+  type TaskStatus,
+} from '@/utils/tasks'
 
 type Project = { id: string; name: string; code: string }
 
@@ -17,14 +26,14 @@ type Task = {
   owner_id: string | null
   name: string
   code: string
-  status: 'default' | 'overdue' | 'approaching' | 'on-track' | 'complete'
-  stage: 'backlog' | 'todo' | 'doing' | 'done'
+  status: TaskStatus
+  stage: TaskStage
   position: number
 }
 
 type Member     = { id: string; name: string | null; email: string | null }
 type DropTarget = { stage: Task['stage']; index: number } | null
-type SortKey    = 'manual' | 'alphabetical' | 'status' | 'assignee'
+type SortKey    = TaskSortKey
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'manual',       label: 'Manual'       },
@@ -32,14 +41,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'status',       label: 'Status'       },
   { value: 'assignee',     label: 'Assignee'     },
 ]
-
-const STATUS_ORDER: Record<Task['status'], number> = {
-  overdue:    0,
-  approaching: 1,
-  'on-track': 2,
-  default:    3,
-  complete:   4,
-}
 
 type ColumnDef = {
   label: string
@@ -70,13 +71,6 @@ function ColumnIndicator({ color }: { color: ColumnDef['indicator'] }) {
       ))}
     </div>
   )
-}
-
-function computePosition(tasks: Task[], insertIndex: number): number {
-  if (tasks.length === 0) return 1
-  if (insertIndex === 0) return tasks[0].position - 1
-  if (insertIndex >= tasks.length) return tasks[tasks.length - 1].position + 1
-  return (tasks[insertIndex - 1].position + tasks[insertIndex].position) / 2
 }
 
 type Props = {
@@ -130,29 +124,10 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
     completionSound.current?.play().catch(() => {})
   }
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase()
-    const base = tasks.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      t.code.toLowerCase().includes(q)
-    )
-    if (sort === 'manual') return base
-    return [...base].sort((a, b) => {
-      switch (sort) {
-        case 'alphabetical':
-          return a.name.localeCompare(b.name)
-        case 'status':
-          return STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
-        case 'assignee': {
-          const ma = members.find(m => m.id === a.owner_id)
-          const mb = members.find(m => m.id === b.owner_id)
-          const na = ma ? (ma.name ?? ma.email ?? '') : '\uFFFF'
-          const nb = mb ? (mb.name ?? mb.email ?? '') : '\uFFFF'
-          return na.localeCompare(nb)
-        }
-      }
-    })
-  }, [tasks, search, sort, members])
+  const filtered = useMemo(
+    () => filterAndSortTasks(tasks, search, sort, members),
+    [tasks, search, sort, members],
+  )
 
   // ── Drag handlers ───────────────────────────────────────
   function handleDragStart(e: React.DragEvent, id: string) {
@@ -184,16 +159,14 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
     const dragged = tasks.find(t => t.id === draggedId)
     if (!dragged) return
 
-    const targetTasks  = columnTasks.filter(t => t.id !== draggedId)
-    const insertIndex  = Math.min(dropTarget.index, targetTasks.length)
-    const newPosition  = computePosition(targetTasks, insertIndex)
+    const newPosition  = dropPosition(columnTasks, draggedId, dropTarget.index)
     const prevStage    = dragged.stage
     const prevPosition = dragged.position
 
     if (stage === 'done' && dragged.stage !== 'done') playCompletionSound()
     setTasks(prev =>
       prev.map(t => t.id === draggedId
-        ? { ...t, stage, position: newPosition, status: (stage === 'done' ? 'complete' : stage === 'doing' ? 'on-track' : 'default') as Task['status'] }
+        ? { ...t, stage, position: newPosition, status: statusForStage(stage) }
         : t
       ).sort((a, b) => a.position - b.position)
     )
@@ -242,19 +215,9 @@ export default function ProjectBoard({ project, initialTasks, members, currentUs
   }
 
   // ── Create task ─────────────────────────────────────────
-  function generateTaskCode(): string {
-    const prefix = project.code.replace(/-?\d+$/, '') + '-T'
-    const nums = tasks
-      .filter(t => t.project_id === project.id && t.code.startsWith(prefix))
-      .map(t => parseInt(t.code.slice(prefix.length), 10))
-      .filter(n => !isNaN(n))
-    const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
-    return `${prefix}${String(next).padStart(3, '0')}`
-  }
-
   function openCreateTask(stage: Task['stage'] = 'backlog') {
     setTaskStage(stage)
-    setTaskCode(generateTaskCode())
+    setTaskCode(nextTaskCode(project.code, tasks.map(t => t.code)))
     setTaskOwner(currentUserId)
     setInlineCreateStage(stage)
   }

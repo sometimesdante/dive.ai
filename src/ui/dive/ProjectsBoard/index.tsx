@@ -5,15 +5,15 @@ import dynamic from 'next/dynamic'
 import { Plus, ArrowUpDown, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Topbar from '@/ui/dive/Topbar'
+import { sortProjects, type ProjectSortKey, type ProjectStat } from '@/utils/projects'
 
 const CreateProjectPanel = dynamic(() => import('@/ui/dive/CreateProjectPanel'))
 
 type Project  = { id: string; name: string; code: string; planned_end: string | null }
 type Member   = { id: string; name: string | null; email: string | null }
 type Cluster  = { id: string; name: string }
-type ProjectStat = { total: number; done: number; members: Member[] }
 
-type SortKey = 'alphabetical' | 'tasks' | 'deadline' | 'progress'
+type SortKey = ProjectSortKey
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'alphabetical', label: 'Alphabetical' },
@@ -37,33 +37,10 @@ export default function ProjectsBoard({ projects, members, clusters, currentUser
   const [sort, setSort]           = useState<SortKey>('alphabetical')
   const [sortOpen, setSortOpen]   = useState(false)
 
-  const sorted = useMemo(() => {
-    const q = search.toLowerCase()
-    const base = search
-      ? projects.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q))
-      : projects
-    return [...base].sort((a, b) => {
-      const sa = projectStats[a.id] ?? { total: 0, done: 0, members: [] }
-      const sb = projectStats[b.id] ?? { total: 0, done: 0, members: [] }
-      switch (sort) {
-        case 'alphabetical':
-          return a.name.localeCompare(b.name)
-        case 'tasks':
-          return sb.total - sa.total
-        case 'deadline': {
-          if (!a.planned_end && !b.planned_end) return 0
-          if (!a.planned_end) return 1
-          if (!b.planned_end) return -1
-          return a.planned_end.localeCompare(b.planned_end)
-        }
-        case 'progress': {
-          const ra = sa.total > 0 ? sa.done / sa.total : 0
-          const rb = sb.total > 0 ? sb.done / sb.total : 0
-          return rb - ra
-        }
-      }
-    })
-  }, [projects, projectStats, sort, search])
+  const sorted = useMemo(
+    () => sortProjects(projects, projectStats, sort, search),
+    [projects, projectStats, sort, search],
+  )
 
   return (
     <div className="flex flex-col h-full">

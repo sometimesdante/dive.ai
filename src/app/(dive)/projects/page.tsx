@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import ProjectsBoard from '@/ui/dive/ProjectsBoard'
+import { buildProjectStats } from '@/utils/projects'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,24 +48,7 @@ export default async function ProjectsPage() {
       : Promise.resolve({ data: [] }),
   ])
 
-  // Build per-project stats
-  const projectStats: Record<string, { total: number; done: number; members: { id: string; name: string | null; email: string | null }[] }> = {}
-
-  for (const p of projects ?? []) {
-    projectStats[p.id] = { total: 0, done: 0, members: [] }
-  }
-  for (const t of allTasks ?? []) {
-    if (projectStats[t.project_id]) {
-      projectStats[t.project_id].total++
-      if (t.stage === 'done') projectStats[t.project_id].done++
-    }
-  }
-  for (const pm of projectMembersData ?? []) {
-    const profile = (pm as any).profiles
-    if (projectStats[pm.project_id] && profile) {
-      projectStats[pm.project_id].members.push(profile)
-    }
-  }
+  const projectStats = buildProjectStats(projects ?? [], allTasks ?? [], projectMembersData ?? [])
 
   return (
     <ProjectsBoard

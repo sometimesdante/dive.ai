@@ -22,7 +22,11 @@ type Props = {
 }
 
 export default function RichTextEditor({ noteId, content, onChange }: Props) {
-  const isProgrammatic = useRef(false)
+  // The note and markdown the editor currently shows. Edits update `shown`
+  // as they're reported, so only content changed from outside (switching
+  // notes, restoring a version) is loaded back in.
+  const shownNote = useRef(noteId)
+  const shown     = useRef(content)
 
   const editor = useEditor({
     extensions: [
@@ -35,20 +39,20 @@ export default function RichTextEditor({ noteId, content, onChange }: Props) {
       attributes: { class: 'outline-none min-h-full' },
     },
     onUpdate({ editor }) {
-      if (isProgrammatic.current) return
       const md = td.turndown(editor.getHTML())
+      shown.current = md
       onChange(md)
     },
   })
 
-  // Re-load content when the active note changes
+  // Load content changed from outside: another note, or a restored version
   useEffect(() => {
     if (!editor) return
-    isProgrammatic.current = true
-    editor.commands.setContent(marked.parse(content) as string)
-    isProgrammatic.current = false
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteId])
+    if (noteId === shownNote.current && content === shown.current) return
+    editor.commands.setContent(marked.parse(content) as string, { emitUpdate: false })
+    shownNote.current = noteId
+    shown.current     = content
+  }, [editor, noteId, content])
 
   return (
     <EditorContent

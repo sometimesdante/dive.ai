@@ -4,6 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 
+// Notes are listed on /notes and on every project's notes page.
+function revalidateNotes() {
+  revalidatePath('/notes')
+  revalidatePath('/projects/[id]/notes', 'page')
+}
+
 export async function createNote(projectId: string) {
   const supabase = createClient(await cookies())
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,7 +22,7 @@ export async function createNote(projectId: string) {
     .single()
 
   if (error) return { error: error.message }
-  revalidatePath('/notes')
+  revalidateNotes()
   return { id: data.id }
 }
 
@@ -39,10 +45,13 @@ export async function saveNote(
   if (error) return { error: error.message }
 
   if (snapshot) {
-    await supabase.from('note_versions').insert({ note_id: noteId, title, content })
+    const { error: versionError } = await supabase
+      .from('note_versions')
+      .insert({ note_id: noteId, title, content })
+    if (versionError) return { error: versionError.message }
   }
 
-  revalidatePath('/notes')
+  revalidateNotes()
   return {}
 }
 
@@ -58,7 +67,7 @@ export async function deleteNote(noteId: string) {
     .eq('owner_id', user.id)
 
   if (error) return { error: error.message }
-  revalidatePath('/notes')
+  revalidateNotes()
   return {}
 }
 
@@ -95,6 +104,6 @@ export async function restoreNoteVersion(noteId: string, versionId: string) {
     .eq('owner_id', user.id)
 
   if (error) return { error: error.message }
-  revalidatePath('/notes')
+  revalidateNotes()
   return { title: version.title, content: version.content }
 }

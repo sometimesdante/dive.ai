@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
-import AllNotesEditor from '@/ui/dive/Notes/AllNotesEditor'
+import NotesEditor from '@/ui/dive/Notes'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +40,7 @@ export default async function NotesPage() {
   }))
 
   return (
-    <AllNotesEditor
+    <NotesEditor
       initialNotes={notes}
       projects={projects ?? []}
     />

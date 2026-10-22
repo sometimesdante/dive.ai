@@ -7,6 +7,10 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createServiceClient } from "@/utils/supabase/service";
 
+// The Supabase project's Site URL belongs to another app, so every
+// confirmation email must be pointed back at Dive explicitly.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+
 export async function login(formData: FormData) {
   const supabase = createClient(await cookies());
 
@@ -32,7 +36,9 @@ const supabase = createClient(await cookies());
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     options: {
+      emailRedirectTo: `${siteUrl}/auth/confirm?next=/auth/onboarding`,
       data: {
+        app: "dive",
         name: formData.get("name") as string,
         phone: formData.get("phone") as any,
         address: formData.get("address") as string,
@@ -40,14 +46,20 @@ const supabase = createClient(await cookies());
     },
   };
 
-  const { error } = await supabase.auth.signUp(data);
+  const { data: result, error } = await supabase.auth.signUp(data);
 
   if (error) {
     return { error: error.message };
   }
 
+  // With "Confirm email" on, signUp returns no session: the user has to
+  // click the emailed link first, which brings them back to onboarding.
+  if (!result.session) {
+    redirect(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
+  }
+
   revalidatePath("/", "layout");
-  redirect(`/auth/onboarding?email=${encodeURIComponent(data.email)}`);
+  redirect("/auth/onboarding");
 }
 
 export async function acceptInvite(token: string) {
@@ -120,16 +132,23 @@ export async function signupAndAcceptInvite(formData: FormData) {
   const supabase = createClient(await cookies())
   const token = formData.get('token') as string
 
-  const { error } = await supabase.auth.signUp({
-    email: formData.get('email') as string,
+  const email = formData.get('email') as string
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
     password: formData.get('password') as string,
     options: {
+      emailRedirectTo: `${siteUrl}/auth/confirm?next=${encodeURIComponent(`/auth/accept-invite?token=${token}`)}`,
       data: {
+        app: 'dive',
         name: formData.get('name') as string,
       },
     },
   })
   if (error) return { error: error.message }
+
+  // No session until the email is confirmed; the link returns to the invite.
+  if (!data.session) redirect(`/auth/verify-email?email=${encodeURIComponent(email)}`)
 
   return acceptInvite(token)
 }

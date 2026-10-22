@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { Send, Paperclip, X, FileText, Image } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { sendMessage } from '@/app/(dive)/chat/actions'
+import { formatBytes } from '@/utils/format'
 
 type Project = { id: string; name: string; code: string; cluster_id: string | null }
 type Cluster  = { id: string; name: string }
@@ -23,12 +24,6 @@ type Props = {
   clusters: Cluster[]
   projects: Project[]
   currentUserId: string
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 const AttachmentPreview = memo(function AttachmentPreview({ url, name, type }: { url: string; name: string; type: string }) {
@@ -91,7 +86,7 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
       .channel(`messages:${selectedProjectId}`)
       .on('postgres_changes', {
         event:  'INSERT',
-        schema: 'public',
+        schema: 'dive',
         table:  'messages',
         filter: `project_id=eq.${selectedProjectId}`,
       }, async (payload) => {
@@ -137,15 +132,15 @@ export default function Chat({ clusters, projects, currentUserId }: Props) {
     if (pendingFile) {
       setUploading(true)
       const ext  = pendingFile.name.split('.').pop()
-      const path = `${selectedProjectId}/${Date.now()}_${pendingFile.name}`
+      const path = `chat-attachments/${selectedProjectId}/${Date.now()}_${pendingFile.name}`
       const { error: uploadError } = await supabase.storage
-        .from('chat-attachments')
+        .from('dive')
         .upload(path, pendingFile, { contentType: pendingFile.type })
       setUploading(false)
 
       if (!uploadError) {
         const { data: { publicUrl } } = supabase.storage
-          .from('chat-attachments')
+          .from('dive')
           .getPublicUrl(path)
         attachment = { url: publicUrl, name: pendingFile.name, type: pendingFile.type, size: pendingFile.size }
       }

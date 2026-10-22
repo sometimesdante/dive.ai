@@ -37,12 +37,13 @@ Dive gives an organisation one place to plan projects, talk about them and write
 Browser ──► Next.js server actions ──► Supabase Postgres (RLS on every table)
    │                                         │
    └──── Supabase Realtime ◄─────────────────┘  messages table
-   └──── Supabase Storage  (chat-attachments bucket)
+   └──── Supabase Storage  (dive bucket, chat-attachments/ folder)
 ```
 
-- Every table is scoped to an organisation. A `get_auth_org_id()` helper lets row-level security policies check the signed-in user's organisation, so members only see their own team's data.
+- All of Dive's tables and functions live in a `dive` Postgres schema, so the Supabase project can be shared with other apps.
+- Every table is scoped to an organisation. A `dive.get_auth_org_id()` helper lets row-level security policies check the signed-in user's organisation, so members only see their own team's data.
 - Roles live on `profiles`. Admins manage invites, delete projects and clusters, and edit the organisation. Members create and edit.
-- A trigger creates a profile for each new auth user.
+- A trigger creates a profile for each new auth user that signed up through Dive (user metadata `app: 'dive'`). Users of other apps in the same project don't get one.
 - Invites are rows in `org_invites` with a one-time token. `/api/accept-invite` checks the token and adds the user to the organisation.
 
 ### Data model
@@ -66,24 +67,25 @@ You need Node.js 20 or later and a Supabase project.
 ```bash
 git clone https://github.com/sometimesdante/dive.ai.git && cd dive.ai
 npm install
-# create .env.local with the values below
+cp .env.example .env.local   # then fill in the values below
 npm run dev
 ```
 
 | Variable | Where to find it |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project settings → API |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Supabase → Project settings → API keys (publishable key) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project settings → API keys (publishable key) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project settings → API keys (secret key). Server only, never expose it. |
+| `NEXT_PUBLIC_SITE_URL` | Dive's own URL, with no trailing slash (`http://localhost:3000` locally). Sign-up confirmation emails link back here. |
 | `GA_MEASUREMENT_ID` | Optional. Google Analytics 4 measurement ID. |
 
-Set up the database by running the files in `supabase/migrations` in order in the Supabase SQL editor:
+Set up the database by running `supabase/migrations/001_schema.sql` in the Supabase SQL editor. It creates the `dive` schema, tables, row-level security, grants, the auth trigger, Realtime and the `dive` storage bucket. It only creates what's missing and recreates triggers and policies, so it's safe to run again on a database with data.
 
-1. `001_schema.sql`: tables, row-level security, triggers, Realtime and the `chat-attachments` storage bucket
-2. `002_seed.sql`: optional demo data (an organisation, three clusters, projects, tasks and teammates)
-3. `003_notes.sql`: notes and note versions
+Then, in the Supabase dashboard:
 
-In Supabase → Authentication → URL Configuration, set the Site URL to `http://localhost:3000` for local work and add your production URL to Redirect URLs.
+- **Project settings → Data API → Exposed schemas:** add `dive`. Without it every query fails.
+- **Authentication → URL Configuration → Redirect URLs:** add Dive's URL with a wildcard, for example `http://localhost:3000/**` and your production URL. Dive sends its own `emailRedirectTo`, so it doesn't rely on the Site URL, which can belong to another app sharing the project. If the URL isn't allowed, Supabase falls back to the Site URL.
+- **Email templates:** the default `{{ .ConfirmationURL }}` template works. A custom template should link to `{{ .RedirectTo }}`, not `{{ .SiteURL }}`.
 
 ## Project structure
 
@@ -98,7 +100,7 @@ src/
     dive/              boards, chat, notes editor, mind map, settings
     frontend/          marketing header and footer
   utils/supabase/      browser, server and service-role clients
-supabase/migrations/   schema, seed data, notes
+supabase/migrations/   001_schema.sql, the full database setup
 ```
 
 ## Roadmap

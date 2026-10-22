@@ -30,8 +30,7 @@ export default async function NotesPage({ params }: { params: Promise<{ id: stri
   return (
     <NotesEditor
       project={project}
-      initialNotes={notes ?? []}
-      currentUserId={user.id}
+      initialNotes={(notes ?? []).map(n => ({ ...n, project_id: project.id, project_name: project.name }))}
     />
   )
 }
